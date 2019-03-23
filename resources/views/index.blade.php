@@ -136,7 +136,8 @@
 			</li>
 			@endforeach
 		</ul>
-		<div class="loading clearfix"><b></b>正在加载</div>
+		<div class="loading clearfix">人家是有底线的····</div>
+		<!-- <div class="loading clearfix"><b></b>正在加载</div> -->
 	</div>  
 	<!--底部-->
 	<div class="footer clearfix">

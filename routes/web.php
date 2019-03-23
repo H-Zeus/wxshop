@@ -20,7 +20,7 @@ Route::any('/',"IndexController@index");
 //所有商品
 Route::any('allshops/{cate_id?}',"IndexController@allshops")->where('cate_id','[0-9]+');
 //搜索 替换页面
-Route::any('/allshops/search','IndexController@search');
+Route::any('/allshops/{cate_id}/search','IndexController@search');
 //商品详情
 Route::any('shopcontent/{goods_id}',"IndexController@shopcontent");
 //我的雪天
@@ -40,6 +40,8 @@ Route::group(['middleware'=>'login'],function(){
   Route::any('set/{quit?}',"IndexController@set");
   //收货地址
   Route::any('address',"IndexController@address");
+  //添加收货地址
+  Route::any('/address/writeaddr',"IndexController@writeaddr");
   //编辑个人资料
   Route::any('edituser',"IndexController@edituser");
   //购物记录

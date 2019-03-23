@@ -154,16 +154,30 @@ class IndexController extends Controller
     }
 
     /** 搜索 */
-    public function search(Request $request)
+    public function search(Request $request,$cate_id='')
     {
-        $keyword = $request->keyword;
         $goods_model = new Goods;
+        $keyword = $request->keyword;
         $goodsInfo = [];
         $goodsInfoNum = 0;
-        if($keyword != ''){
-            $goodsInfo = $goods_model->where('goods_name','like',"%$keyword%")->get();
-            $goodsInfoNum = count($goodsInfo); 
+        if($cate_id != 0){
+            //获取商品 分类ID
+            $categort_model = new Category;
+            $categoryInfo = $categort_model->get();
+            $cate_id = $this->getGoodsInfo($categoryInfo,$cate_id);
+            if($keyword != ''){
+                //获取商品信息
+                $goodsInfo = $goods_model->whereIn('cate_id',$cate_id)->where('goods_name','like',"%$keyword%")->get();
+                $goodsInfoNum = count($goodsInfo); 
+            }
+        }else{
+            if($keyword != ''){
+                //获取商品信息
+                $goodsInfo = $goods_model->where('goods_name','like',"%$keyword%")->get();
+                $goodsInfoNum = count($goodsInfo); 
+            }
         }
+        // dd($goodsInfo);  
         return view('search',['goodsInfo'=>$goodsInfo,'goodsInfoNum'=>$goodsInfoNum]);
     }
 
@@ -346,6 +360,11 @@ class IndexController extends Controller
     public function address()
     {
         return view('address');
+    }
+    /** 添加收货地址 */
+    public function writeaddr()
+    {
+        return view('writeaddr');
     }
 
     /** 编辑个人资料 */

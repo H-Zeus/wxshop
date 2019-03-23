@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="{{url('css/swiper.min.css')}}">
 @section('content')
 <body fnav="2" class="g-acc-bg">
+    <input type="hidden" name="_token" value="{{csrf_token()}}" id="_token">
     <div class="page-group">
         <div id="page-photo-browser" class="page">
             <!--触屏版内页头部-->
@@ -67,13 +68,13 @@
                         </div>
                     </div>
                 </div>
-                <!--揭晓倒计时-->
                 <div style="width:100%">
                 {!!$goodsInfo->goods_desc!!}
                 </div>
                 <div class="pro_foot"> 
-                    <a href="{{url('/shopcart/ordersupplyment')}}/{{$goodsInfo->goods_id}}" class="shopping" style="width:70%">立即购买</a>
-                    <span href="" class="fr"><i><b num="1">1</b></i></span>         
+                    <a href="{{url('/shopcart/ordersupplyment')}}/{{$goodsInfo->goods_id}}" class="shopping" style="width:35%">立即购买</a>
+                    <a href="javascript:void(0)" class="cartadd" goods_id="{{$goodsInfo->goods_id}}" style="width:25%">加入购物车</a>
+                    <span class="fr"><i><b num="1" style="display: none;"></b></i></span>         
                 </div>
             </div>
         </div>
@@ -119,5 +120,31 @@
             e.preventDefault()
         })
     }) 
+</script>
+<script>
+    $(function(){
+        //加入购物车
+        $(document).on('click','.cartadd',function(){
+            var _this = $(this);
+            var _token = $('#_token').val();
+            var goods_id = _this.attr('goods_id');
+            var num = $('.fr').find('i').find('b').text();
+            if(num == ''){num = 0}
+            var num = parseInt(num);
+            $.ajax({
+                url:'/cartadd',
+                type:'post',
+                data:{goods_id:goods_id,_token:_token}
+            }).done(function(res){
+                $('.fr').find('i').find('b').show();
+                $('.fr').find('i').find('b').text(num+1);
+                layer.msg('加入成功');
+            })
+        })
+        //跳转到 购物车
+        $('.fr').click(function(){
+            location.href="{{url('shopcart')}}"
+        })
+    })
 </script>
 @endsection

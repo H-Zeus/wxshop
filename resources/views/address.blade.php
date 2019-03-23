@@ -11,9 +11,10 @@
     <div class="m-block-header" id="div-header">
         <strong id="m-title">地址管理</strong>
         <a href="javascript:history.back();" class="m-back-arrow"><i class="m-public-icon"></i></a>
-        <a href="/" class="m-index-icon">添加</a>
+        <a href="{{url('/address/writeaddr')}}" class="m-index-icon">添加</a>
     </div>
     <div class="addr-wrapp">
+
         <div class="addr-list">
             <ul>
                 <li class="clearfix">
@@ -33,6 +34,7 @@
                 </li>
             </ul>  
         </div>
+        
         <div class="addr-list">
             <ul>
                 <li class="clearfix">
@@ -65,26 +67,26 @@
 <!-- 单选 -->
 <script>
     // 删除地址
-    $(document).on('click','span.remove', function () {
-        var buttons1 = [
-            {
-              text: '删除',
-              bold: true,
-              color: 'danger',
-              onClick: function() {
-                $.alert("您确定删除吗？");
-              }
-            }
-          ];
-          var buttons2 = [
-            {
-              text: '取消',
-              bg: 'danger'
-            }
-          ];
-          var groups = [buttons1, buttons2];
-          $.actions(groups);
-    });
+    // $(document).on('click','span.remove', function () {
+    //     var buttons1 = [
+    //         {
+    //           text: '删除',
+    //           bold: true,
+    //           color: 'danger',
+    //           onClick: function() {
+    //             $.alert("您确定删除吗？");
+    //           }
+    //         }
+    //       ];
+    //       var buttons2 = [
+    //         {
+    //           text: '取消',
+    //           bg: 'danger'
+    //         }
+    //       ];
+    //       var groups = [buttons1, buttons2];
+    //       $.actions(groups);
+    // });
     
     var $$=jQuery.noConflict();
     $$(document).ready(function(){

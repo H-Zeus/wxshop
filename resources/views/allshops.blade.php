@@ -387,8 +387,11 @@
         })
         //搜索 替换页面
         $(document).on('focus','#txtSearch',function(){
+            if(checkUrl == ''){
+                checkUrl = 0;
+            }
             $.ajax({
-                url:"/allshops/search",
+                url:"/allshops/"+checkUrl+"/search",
                 type:'post',
                 data:{_token:_token}
             }).done(function(res){

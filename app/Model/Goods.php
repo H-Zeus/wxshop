@@ -27,4 +27,15 @@ class Goods extends Model
      * @var bool
      */
     public $timestamps = false;
+
+     /**
+     * 获取用户的名字。
+     *
+     * @param  string  $value
+     * @return string
+     */
+    public function getSelfPriceAttribute($value)
+    {
+        return number_format($value,'2','.',',');
+    }
 }
