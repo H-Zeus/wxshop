@@ -8,7 +8,9 @@ use App\Model\Category;
 use App\Model\User;
 use App\Model\Cart;
 use App\Common;
-use App\Tools\Captcha;
+use App\Model\Address;
+use Illuminate\Support\Facades\DB;
+
 
 class IndexController extends Controller
 {
@@ -124,10 +126,42 @@ class IndexController extends Controller
     /** 立即购买 */
     public function ordersupplyment($id)
     {
+        //获取商品数据
         $goods_model = new Goods;
         $where = ['goods_id' => $id];
         $goodsInfo = $goods_model->where($where)->first();
-        return view('ordersupplyment',['goodsInfo'=>$goodsInfo]);
+        //获取收货地址数据
+        $address_model = new Address;
+        $user_id = session('userInfo')['user_id'];
+        $addressInfo = $address_model->where(['is_default'=>1,'user_id'=>$user_id])->first();
+        if($addressInfo == ''){
+            $addressInfo= '[]';
+        }
+        return view('ordersupplyment',['goodsInfo'=>$goodsInfo,'addressInfo'=>$addressInfo]);
+    }
+    /** 订单结算 */
+    public function ordersum(Request $request,$id)
+    {
+        // $cart_id = $request->cart_id;
+        $cart_id = $id;
+        $cart_id = rtrim($cart_id,',');
+        $cart_id = ltrim($cart_id,'undefined');
+        $cart_id = explode(',',$cart_id);
+        //获取商品数据
+        $cart_model = new Cart;
+        $goodsInfo = $cart_model
+                    ->whereIn('cart_id',$cart_id)
+                    ->join('shop_goods','shop_cart.goods_id','=','shop_goods.goods_id')
+                    ->get();
+                    // dd($goodsInfo);
+        //获取收货地址数据
+        $address_model = new Address;
+        $user_id = session('userInfo')['user_id'];
+        $addressInfo = $address_model->where(['is_default'=>1,'user_id'=>$user_id])->first();
+        if($addressInfo == ''){
+            $addressInfo= '[]';
+        }
+        return view('ordernum',['goodsInfo'=>$goodsInfo,'addressInfo'=>$addressInfo]);
     }
 
     /** 所有商品 */
@@ -359,12 +393,108 @@ class IndexController extends Controller
     /** 收货地址 */
     public function address()
     {
-        return view('address');
+        $address_model = new Address;
+        $addressInfo = $address_model
+                ->where(['user_id'=>session('userInfo')['user_id'],'address_status'=>1])
+                ->get();
+        return view('address',['addressInfo'=>$addressInfo]);
     }
     /** 添加收货地址 */
-    public function writeaddr()
+    public function writeaddr(Request $request)
     {
-        return view('writeaddr');
+        if($request->ajax()){
+            $data = $request->all();
+            unset($data['_token']);
+            $user_id = session('userInfo')['user_id'];
+            $data['user_id'] = $user_id;
+            $address_model = new Address;
+            //判断是否为默认地址 1是  2否
+            if($data['is_default'] == 1){
+                $address_model
+                    ->where(['user_id'=>$user_id])
+                    ->update(['is_default'=>2]);
+                $res = $address_model->insert($data);
+                if($res){
+                    return '保存成功';
+                }else{
+                    return '保存失败';
+                }
+            }else{
+                
+                $res = $address_model
+                        ->insert($data);
+                if($res){
+                    return '保存成功';
+                }else{
+                    return '保存失败';
+                }
+            }
+        }else{
+            return view('writeaddr');
+        }
+    }
+    /** 设置默认收货地址 */
+    public function setdefaultaddress(Request $request)
+    {
+        $address_id = $request->address_id;
+        $user_id = session('userInfo')['user_id'];
+        $address_model = new Address;
+        //将所有收货地址设置为 非默认
+        $address_model
+            ->where(['user_id'=>$user_id])
+            ->update(['is_default'=>2]);
+        //修改收货地址状态
+        $address_model
+            ->where(['user_id'=>$user_id,'address_id'=>$address_id])
+            ->update(['is_default'=>1]);
+        return '修改成功';
+    }
+    /** 删除收货地址 */
+    public function deladdress(Request $request)
+    {
+        $address_id = $request->address_id;
+        //判断当前收货地址是否是默认地址  如果是 禁止删除
+        $address_model = new Address;
+        $res = $address_model->where(['address_id'=>$address_id])->first()['is_default'];
+        if($res == 1){
+            return '默认地址禁止删除！！';
+        }else{
+            $res = $address_model->where(['address_id'=>$address_id])->update(['address_status'=>2]);
+            if($res){
+                return '删除成功';
+            }else{
+                return '删除失败';
+            }
+        }
+    }
+    /** 编辑收货地址 */
+    public function writeaddrupdate(Request $request,$id)
+    {
+        $address_id = $id;
+        $address_model = new Address;
+        if($request->ajax()){
+            $data = $request->all();
+            unset($data['_token']);
+            if($data['address'] == ''){
+                unset($data['address']);
+            }
+            $user_id = session('userInfo')['user_id'];
+            $data['user_id'] = $user_id;
+            $res = $address_model
+                    ->where(['address_id'=>$address_id])
+                    ->update($data);
+            if($res){
+                return '保存成功';
+            }else if($res == 0){
+                return '数据未编辑';
+            }else{
+                return '保存失败';
+            }
+        }else{
+            
+            $addressInfo = $address_model->where(['address_id'=>$address_id])->first();
+            return view('writeaddrupdate',['addressInfo'=>$addressInfo]);
+        }
     }
 
     /** 编辑个人资料 */

@@ -99,6 +99,8 @@ window.LArea = (function() {
                 var larea_finish = _self.gearArea.querySelector(".larea_finish");
                 larea_finish.addEventListener('touchstart', function(e) {
                     _self.finish(e);
+					//添加回调函数
+					_self.success(e);
                 });
                 var area_province = _self.gearArea.querySelector(".area_province");
                 var area_city = _self.gearArea.querySelector(".area_city");
@@ -225,7 +227,7 @@ window.LArea = (function() {
                         setDuration();
                     }
                     if (stopGear) {
-                        var gearVal = Math.abs(pos) / 2;
+                        var gearVal = Math.abs(pos) / 2 || 0 ;
                         setGear(target, gearVal);
                         clearInterval(target["int_" + target.id]);
                     }

@@ -29,7 +29,7 @@ class Goods extends Model
     public $timestamps = false;
 
      /**
-     * 获取用户的名字。
+     * 更改价格显示。
      *
      * @param  string  $value
      * @return string

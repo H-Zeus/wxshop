@@ -42,6 +42,12 @@ Route::group(['middleware'=>'login'],function(){
   Route::any('address',"IndexController@address");
   //添加收货地址
   Route::any('/address/writeaddr',"IndexController@writeaddr");
+  //添加收货地址
+  Route::any('/address/writeaddr/set',"IndexController@setdefaultaddress");
+  //删除收货地址
+  Route::any('/address/writeaddr/del',"IndexController@deladdress");
+  //编辑收货地址
+  Route::any('/address/writeaddr/update/{id}',"IndexController@writeaddrupdate");
   //编辑个人资料
   Route::any('edituser',"IndexController@edituser");
   //购物记录
@@ -64,6 +70,8 @@ Route::group(['middleware'=>'login'],function(){
   Route::any('/shopcart/remove',"IndexController@remove");
   //立即购买
   Route::any('/shopcart/ordersupplyment/{id}',"IndexController@ordersupplyment");
+  //去结算
+  Route::any('/shopcart/ordersum/{id}',"IndexController@ordersum");
 
 });
 

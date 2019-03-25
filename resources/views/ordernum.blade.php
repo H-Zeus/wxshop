@@ -43,14 +43,16 @@
         @endif
     </div>
     <div class="getshop">
+        @foreach($goodsInfo as $v)
         <div class="shopsimg fl" style="margin-left:6px;margin-right:10px">
-            <img src='{{url("/uploads/goodsimg/$goodsInfo->goods_img")}}' alt="">
+            <img src='{{url("/uploads/goodsimg/$v->goods_img")}}' alt="">
         </div>
         <div class="shopsinfo">
-            <h3>{{$goodsInfo->goods_name}}</h3>
-            <p class="price">价值：￥<i>{{$goodsInfo->self_price}}</i></p>
+            <h3>{{$v->goods_name}}</h3>
+            <p class="price">价值：￥<i>{{$v->self_price}}</i></p>
             <p>订单号：C17061673490875027850</p>
         </div>
+        @endforeach
         <div class="hot-line">
             <i></i><span>客服热线：400-666-2110</span>
         </div>

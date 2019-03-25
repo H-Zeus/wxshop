@@ -4,21 +4,21 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Cart extends Model
+class Address extends Model
 {
     /**
      * 与模型关联的数据表。
      *
      * @var string
      */
-    protected $table = 'shop_cart';
+    protected $table = 'shop_address';
 
     /**
      * 主键ID
      *
      * @var string
      */
-    protected $primaryKey  = 'cart_id';
+    protected $primaryKey  = 'address_id';
 
 
      /**
@@ -27,15 +27,4 @@ class Cart extends Model
      * @var bool
      */
     public $timestamps = false;
-
-    /**
-     * 更改价格显示。
-     *
-     * @param  string  $value
-     * @return string
-     */
-    public function getSelfPriceAttribute($value)
-    {
-        return number_format($value,'2','.',',');
-    }
 }

@@ -33,7 +33,7 @@
                         <em class="num-add add"><i></i></em>
                     </div>
                     <a href="javascript:;" cart_id="{{$v->cart_id}}" name="delLink" cid="12501977" isover="0" class="z-del"><s></s></a>
-                </div>    
+                </div>
             </li>
             @endforeach
         </ul>
@@ -204,7 +204,8 @@
         //alert(conts);
     });
 
-    var totalsum; //总金额
+    var totalsum = ''; //总金额
+    var totalid; //总金额
     // 已选中的总额
     function GetCount() {
         var conts = 0;
@@ -212,11 +213,12 @@
             if ($(this).hasClass("current")) {
                 for (var i = 0; i < $(this).length; i++) {
                     conts += parseInt($(this).parents('li').find('input.text_box').val()*$(this).parents('li').find('input.text_box').attr('price'));
+                    totalid += $(this).next().next().find("a[class='z-del']").attr('cart_id')+',';
                 }
             }
         });
         totalsum = conts;
-         $(".total").html('<span>￥</span>'+(conts).toFixed(2));
+        $(".total").html('<span>￥</span>'+(conts).toFixed(2));
     }
     GetCount();
 </script>
@@ -269,8 +271,16 @@
 
             //结算
             $('.clearing').click(function(){
+                location.href="{{url('/shopcart/ordersum')}}/"+totalid;
+                // $.ajax({
+                //     url:"{{url('/shopcart/ordersum')}}",
+                //     type:'post',
+                //     data:{_token:_token,cart_id:totalid}
+                // }).done(function(res){
+                //     layer.msg(res);
+                //     // location.href="{{url('/shopcart/ordersum')}}"
+                // })
                 //totalsum 总额
-                layer.msg('别急，才 ￥'+totalsum+' 还不够呢快去再买点');
             })
         })
     })
