@@ -472,16 +472,23 @@ class IndexController extends Controller
         $code = Common::createcode(4);
         //发送短信
         $res = Common::sendSms($user_tel,$code);
-        if($res){
-            $sendInfo = [
-                'sendTime' => time(),
-                'sendCode' => $code,
-                'sendTel' => $user_tel
-            ];
-            session(['sendInfo'=>$sendInfo]);
-            return '发送成功'.'验证码：'.session('sendInfo')['sendCode'];
-        }else{
-            return '发送失败';
-        }
+        $sendInfo = [
+            'sendTime' => time(),
+            'sendCode' => $code,
+            'sendTel' => $user_tel
+        ];
+        session(['sendInfo'=>$sendInfo]);
+        return '发送成功'.'验证码：'.session('sendInfo')['sendCode'].'!!'.$res;
+        // if($res){
+        //     $sendInfo = [
+        //         'sendTime' => time(),
+        //         'sendCode' => $code,
+        //         'sendTel' => $user_tel
+        //     ];
+        //     session(['sendInfo'=>$sendInfo]);
+        //     return '发送成功'.'验证码：'.session('sendInfo')['sendCode'];
+        // }else{
+        //     return '发送失败';
+        // }
     }
 }

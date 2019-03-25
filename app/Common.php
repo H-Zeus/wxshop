@@ -27,12 +27,12 @@ class Common extends Model
         $uid =  config('sms.sms_uid');
         $ucpass = new Ucpaas($options);
         $result = $ucpass->SendSms($appid, $templateid, $param, $mobile, $uid);
-
-        if($result) {
-            return true;
-        }else{
-            return false;
-        }
+        echo $result;
+        // if($result) {
+        //     return true;
+        // }else{
+        //     return false;
+        // }
     }
     /**
      * @content 生成随机验证码
