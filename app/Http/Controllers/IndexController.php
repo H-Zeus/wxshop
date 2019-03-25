@@ -479,7 +479,7 @@ class IndexController extends Controller
                 'sendTel' => $user_tel
             ];
             session(['sendInfo'=>$sendInfo]);
-            return '发送成功'.session('sendInfo')['sendCode'];
+            return '发送成功'.'验证码：'.session('sendInfo')['sendCode'];
         }else{
             return '发送失败';
         }
