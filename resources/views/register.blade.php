@@ -203,7 +203,7 @@
                 data:{_token:_token,user_tel:user_tel},
             }).done(function(res){
                 layer.msg(res);
-                if(res == '发送成功'){
+                if(res.search('发送成功') != -1){
                     status = true;
                 }
             })
