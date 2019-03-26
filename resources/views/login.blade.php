@@ -21,9 +21,9 @@
                         <dl>
                             <div class="txtAccount">
                                 <input type="hidden" name="_token" value="{{csrf_token()}}" id="_token">
-                                <input id="txtAccount" type="text" name="user_tel" placeholder="请输入您的手机号码/邮箱"><i></i>
+                                <input id="txtAccount" type="text" name="user_tel" maxlength="11" placeholder="请输入您的手机号码"><i></i>
                             </div>
-                            <cite class="passport_set" style="display: none"></cite>
+                            <cite class="passport_set" style="display: none;width:5%"></cite>
                         </dl>
                         <dl>
                             <input id="txtPassword" type="password" placeholder="密码" name="user_pwd" maxlength="20" /><b></b>
@@ -42,6 +42,7 @@
                 <a href="javascript:void(0);">忘记密码？</a><b></b>
                 <a href="{{url('/register')}}">新用户注册</a>
             </div>
+            <div id="replace" style="color:red;font-size:20px"></div>
         </div>
     </div>
 @endsection
@@ -50,7 +51,17 @@
     $(function(){
         //× 显示隐藏
         $('#txtAccount').click(function(){
-            
+            $('.passport_set').show();
+        })
+        $('#txtPassword').click(function(){
+            $('.passport_set').hide();
+        })
+        $('#verifycode').click(function(){
+            $('.passport_set').hide();
+        })
+        //点×清空内容
+        $('.passport_set').click(function(){
+            $('#txtAccount').val('');
         })
         //刷新验证码
         $('#code').click(function(){
@@ -66,12 +77,18 @@
                 "login",
                 {_token:_token,user_tel:user_tel,user_pwd:user_pwd,code:code},
                 function(res){
-                    layer.msg(res,{time:1500},function(){
-                        if(res == '登录成功'){
-                            // location.href="/";
-                            history.go(-2);
-                        }
-                    });
+                    $('#replace').empty();
+                    if(res.search('<br>') != -1){
+                        layer.msg('！！请规范操作！！');
+                        $('#replace').append(res);
+                    }else{
+                        layer.msg(res,{time:1500},function(){
+                            if(res == '登录成功'){
+                                // location.href="/";
+                                history.go(-2);
+                            }
+                        });
+                    }
                 }
             )
         })

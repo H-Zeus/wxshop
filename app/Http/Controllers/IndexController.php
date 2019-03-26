@@ -10,7 +10,7 @@ use App\Model\Cart;
 use App\Common;
 use App\Model\Address;
 use Illuminate\Support\Facades\DB;
-
+use Validator;
 
 class IndexController extends Controller
 {
@@ -156,9 +156,8 @@ class IndexController extends Controller
         return view('ordersupplyment',['goodsInfo'=>$goodsInfo,'addressInfo'=>$addressInfo]);
     }
     /** 订单结算 */
-    public function ordersum(Request $request,$id)
+    public function ordersum($id)
     {
-        // $cart_id = $request->cart_id;
         $cart_id = $id;
         $cart_id = rtrim($cart_id,',');
         $cart_id = explode(',',$cart_id);
@@ -378,7 +377,7 @@ class IndexController extends Controller
         }
     }
 
-    /** 我的雪天 */
+    /** 我的信息 */
     public function userpage()
     {
         //判断登录状态
@@ -563,6 +562,25 @@ class IndexController extends Controller
     public function login(Request $request)
     {
         if($request->post()){
+            $validate = Validator::make($request->all(),[
+                'user_tel'=>"required",
+                'user_pwd'=>"required|min:6|max:12",
+                'code'=>"required"
+            ],[
+                "user_tel.required"=>'手机号不为空',
+                "user_pwd.required"=>'密码不为空',
+                "user_pwd.min"=>"密码不能小于6位",
+                "user_pwd.max"=>"密码不能大于12位",
+                "code.required"=>"验证码不为空",
+            ]);
+            static $str = '';
+            if($validate->fails()){
+                $errors  = $validate->errors()->getMessages();
+                foreach ($errors as $v){
+                    $str .= implode('&&',$v)."<br>";
+                }
+                return $str;
+            }
             $user_tel = $request->user_tel;
             $user_pwd = $request->user_pwd;
             $keycode = $request->code;
@@ -608,6 +626,26 @@ class IndexController extends Controller
     public function register(Request $request)
     {
         if($request->ajax()){
+            $validate = Validator::make($request->all(),[
+                'user_tel'=>"required|unique:shop_user",
+                'user_pwd'=>"required|min:6|max:12",
+                'keycode'=>"required"
+            ],[
+                "user_tel.required"=>'手机号不为空',
+                "user_tel.unique"=>'手机号已存在',
+                "user_pwd.required"=>'密码不为空',
+                "user_pwd.min"=>"密码不能小于6位",
+                "user_pwd.max"=>"密码不能大于12位",
+                "keycode.required"=>"验证码不为空",
+            ]);
+            static $str = '';
+            if($validate->fails()){
+                $errors  = $validate->errors()->getMessages();
+                foreach ($errors as $v){
+                    $str .= implode('&&',$v)."<br>";
+                }
+                return $str;
+            }
             //验证
             if($request->user_tel == ''){
                 return '手机号不能为空';
@@ -633,12 +671,13 @@ class IndexController extends Controller
             $keycode = $data['keycode'];
             if($keycode == $code){
                 unset($data['keycode']);
+                $data['user_name'] = $user_tel;
                 //入库
                 $res = $user_model->insertGetId($data);
                 if($res){
                     $userInfo = [
                         'user_id' => $res,
-                        'user_name' => $user_tel
+                        'user_name' => $data['user_name']
                     ];
                     session(['userInfo' => $userInfo]);
                     return '注册成功';

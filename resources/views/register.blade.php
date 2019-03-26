@@ -38,15 +38,15 @@
                     </dl>
                     <dl>
                         <s class="password"></s>
-                        <input class="pwd" maxlength="11" type="text" placeholder="6-16位数字、字母组成" id="user_pwd" name="user_pwd" />
-                        <input class="pwd" maxlength="11" type="password" placeholder="6-16位数字、字母组成" style="display: none" />
+                        <input class="pwd" type="text" placeholder="6-16位数字、字母组成" id="user_pwd" name="user_pwd" />
+                        <input class="pwd" type="password" placeholder="6-16位数字、字母组成" style="display: none" />
                         <span class="mr clear">x</span>
                         <s class="eyeclose"></s>
                     </dl>
                     <dl>
                         <s class="password"></s>
-                        <input class="conpwd" maxlength="11" type="text" placeholder="请确认密码"/>
-                        <input class="conpwd" maxlength="11" type="password" placeholder="请确认密码" style="display: none" />
+                        <input class="conpwd" type="text" placeholder="请确认密码"/>
+                        <input class="conpwd" type="password" placeholder="请确认密码" style="display: none" />
                         <span class="mr clear">x</span>
                         <s class="eyeclose"></s>
                     </dl>
@@ -62,7 +62,8 @@
                 </li>
                 <li><a id="btnNext" href="javascript:;" class="orangeBtn loginBtn">下一步</a></li>
             </ul>
-        </div>    
+        </div>   
+        <center><div id="replace" style="color:red;font-size:20px"></div></center>
 @endsection
 </body>
 @section('my-js')
@@ -223,11 +224,17 @@
                     type:'post',
                     data:{_token:_token,user_tel:user_tel,user_pwd:user_pwd,keycode:keycode},
                 }).done(function(res){
-                    layer.msg(res,{time:1500},function(){
+                    $('#replace').empty();
+                    if(res.search('<br>') != -1){
+                        layer.msg('！！请规范操作！！');
+                        $('#replace').append(res);
+                    }else{
+                        layer.msg(res,{time:1500},function(){
                         if(res == '注册成功'){
                             location.href="/";
                         }
                     });
+                    }
                 })
             }
         })
