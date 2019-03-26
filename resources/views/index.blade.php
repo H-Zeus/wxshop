@@ -114,8 +114,8 @@
 			@foreach($goodsInfo as $v)
 			<li id="23558" codeid="12751965" goodsid="23558" codeperiod="28436">
 				<a href="{{url('shopcontent')}}/{{$v->goods_id}}" class="g-pic">
-					<img class="lazy" name="goodsImg" data-original='{{url("/uploads/hh.gif")}}'src='{{url("/uploads/hh.gif")}}' width="136" height="136">
-					<!-- <img class="lazy" name="goodsImg" src='{{url("/uploads/goodsimg/$v->goods_img")}}' width="136" height="136"> -->
+					<!-- <img class="lazy" name="goodsImg" data-original='{{url("/uploads/hh.gif")}}'src='{{url("/uploads/hh.gif")}}' width="136" height="136"> -->
+					<img class="lazy" name="goodsImg" src='{{url("/uploads/goodsimg/$v->goods_img")}}' width="136" height="136">
 				</a>
 				<p class="g-name"><a href="{{url('shopcontent')}}/{{$v->goods_id}}">{{$v->goods_name}}</a></p>
 				<ins class="gray9">价值：￥{{$v->self_price}}</ins>
