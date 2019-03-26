@@ -145,7 +145,6 @@ class IndexController extends Controller
         // $cart_id = $request->cart_id;
         $cart_id = $id;
         $cart_id = rtrim($cart_id,',');
-        $cart_id = ltrim($cart_id,'undefined');
         $cart_id = explode(',',$cart_id);
         //获取商品数据
         $cart_model = new Cart;

@@ -9,7 +9,7 @@
     <!--首页头部-->
     <div class="m-block-header">
         <strong id="m-title">购物车管理</strong>
-        <a href="/" class="m-index-icon">编辑</a>
+        <!-- <a href="/" class="m-index-icon">编辑</a> -->
     </div>
     <!--首页头部 end-->
     <div class="g-Cart-list">
@@ -209,6 +209,7 @@
     // 已选中的总额
     function GetCount() {
         var conts = 0;
+        totalid = '';
         $(".g-Cart-list .xuan").each(function () {
             if ($(this).hasClass("current")) {
                 for (var i = 0; i < $(this).length; i++) {
@@ -217,6 +218,7 @@
                 }
             }
         });
+        console.log(totalid);
         totalsum = conts;
         $(".total").html('<span>￥</span>'+(conts).toFixed(2));
     }
