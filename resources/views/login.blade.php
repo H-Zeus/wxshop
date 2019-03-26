@@ -64,7 +64,8 @@
                 function(res){
                     layer.msg(res,{time:1500},function(){
                         if(res == '登录成功'){
-                            location.href="/";
+                            // location.href="/";
+                            history.go(-2);
                         }
                     });
                 }

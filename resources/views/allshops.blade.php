@@ -289,7 +289,9 @@
                 type:'post',
                 data:{goods_id:goods_id,_token:_token}
             }).done(function(res){
-                // console.log(res);
+                if(res != ''){
+                    $('body').html(res);
+                }
             })
         })
         //默认

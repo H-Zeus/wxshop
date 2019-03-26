@@ -218,7 +218,6 @@
                 }
             }
         });
-        console.log(totalid);
         totalsum = conts;
         $(".total").html('<span>￥</span>'+(conts).toFixed(2));
     }
