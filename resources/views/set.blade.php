@@ -9,7 +9,7 @@
     <!--触屏版内页头部-->
     <div class="m-block-header" id="div-header">
         <strong id="m-title">设置</strong>
-        <a href="javascript:history.back();" class="m-back-arrow"><i class="m-public-icon"></i></a>
+        <a href="{{url('/userpage')}}" class="m-back-arrow"><i class="m-public-icon"></i></a>
         <a href="{{url('/')}}" class="m-index-icon"><i class="m-public-icon"></i></a>
     </div>
 
@@ -36,7 +36,7 @@
             </ul>     
         </div>
         <div class="quit">
-            <a href="{{url('set/quit')}}">退出登录</a>
+            <a href="{{url('/logout')}}">退出登录</a>
         </div>
     </div>
 </body>

@@ -5,15 +5,21 @@
 <script src="js/jquery190_1.js" language="javascript" type="text/javascript"></script>
 @section('content')
 <body class="g-acc-bg">
+    <!--触屏版内页头部-->
     @if($checkLogin == 2)
+    <div class="m-block-header" id="div-header" style="background:rgb(248, 99, 26)">
+        <strong id="m-title"></strong>
+        <a href="javascript:history.back();" class="m-back-arrow"><i class="m-public-icon"></i></a>
+        <a href="{{url('/')}}" class="m-index-icon"><i class="m-public-icon"></i></a>
+    </div>
     <div class="welcome">
-        <p>Hi，等你好久了！</p>
+        <p style="color:#fff">Hi，等你好久了！</p>
         <a href="{{url('/login')}}" class="orange">登录</a>
         <a href="{{url('/register')}}" class="orange">注册</a>
     </div>
     @else
     <div class="welcome">
-        <a href="{{url('set')}}"><i class="set"></i></a>
+        <a href="{{url('/set')}}"><i class="set"></i></a>
         <div class="login-img clearfix">
             <ul>
                 <!-- <li><img src="/uploads/Tou.jpg" alt=""></li> -->

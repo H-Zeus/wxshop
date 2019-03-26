@@ -29,7 +29,7 @@
                             <input id="txtPassword" type="password" placeholder="密码" name="user_pwd" maxlength="20" /><b></b>
                         </dl>
                         <dl>
-                            <input id="verifycode" type="text" placeholder="请输入验证码"  maxlength="4" /><b></b>
+                            <input id="verifycode" type="text" placeholder="请输入验证码(区分大小写)" name="code"  maxlength="4" /><b></b>
                             <center>
                                 <img src="{{url('/verify/create')}}" id="code" alt="点击刷新" style="width:70%;height:40px;margin-top:14px">
                             </center>
@@ -48,6 +48,10 @@
 </body>
 <script>
     $(function(){
+        //× 显示隐藏
+        $('#txtAccount').click(function(){
+            
+        })
         //刷新验证码
         $('#code').click(function(){
             $(this).attr('src',"{{url('/verify/create')}}"+"?"+Math.random())

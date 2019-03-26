@@ -90,7 +90,7 @@
                 }
               }).done(function(res){
                 layer.msg(res,{time:1200},function(){
-                  if(res == '保存成功' || res == '数据未编辑'){
+                  if(res == '保存成功'){
                     location.href="{{url('/address')}}";
                   }
                 });

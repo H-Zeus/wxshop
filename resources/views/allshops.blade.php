@@ -289,8 +289,12 @@
                 type:'post',
                 data:{goods_id:goods_id,_token:_token}
             }).done(function(res){
-                if(res != ''){
+                if(res != '' && res != '库存不足'){
                     $('body').html(res);
+                }
+                if(res == '库存不足'){
+                    layer.msg('库存不足');
+                    $('#btnCart').find('i').empty();
                 }
             })
         })

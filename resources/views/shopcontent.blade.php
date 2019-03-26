@@ -51,24 +51,22 @@
                         价值：￥{{$goodsInfo->self_price}}
                     </div>
                     <div class="clearfix">
-                        
                         <div class="gRate">
                             <div class="Progress-bar">
-                                <p class="u-progress" title="已完成90%">
+                                <p class="u-progress" title="剩余库存{{$goodsInfo->goods_num/10}}%">
                                     <span class="pgbar" style="width:{{$goodsInfo->goods_num/10}}%;">
                                         <span class="pging"></span>
                                     </span>
                                 </p>
                                 <ul class="Pro-bar-li">
-                                    <li class="P-bar01"><em>{{1000-$goodsInfo->goods_num}}</em>已参与</li>
-                                    <li class="P-bar02"><em>1000</em>总需人次</li>
-                                    <li class="P-bar03"><em>{{$goodsInfo->goods_num}}</em>剩余</li>
+                                    <li class="P-bar01"><em>&ensp;{{1000-$goodsInfo->goods_num}}</em>已售出</li>
+                                    <li class="P-bar03"><em>{{$goodsInfo->goods_num}}&ensp;</em>剩余</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div style="width:100%">
+                <div style="width:100%;margin-left:10px;">
                 {!!$goodsInfo->goods_desc!!}
                 </div>
                 <div class="pro_foot"> 
@@ -82,9 +80,9 @@
 </body>
 @endsection
 
+
 <script src="{{url('js/swiper.min.js')}}"></script>
 <!-- <script src="{{url('js/photo.js')}}" charset="utf-8"></script> -->
-
 @section('my-js')
 <script>
     $(function () {  
@@ -136,9 +134,20 @@
                 type:'post',
                 data:{goods_id:goods_id,_token:_token}
             }).done(function(res){
-                $('.fr').find('i').find('b').show();
-                $('.fr').find('i').find('b').text(num+1);
-                layer.msg('加入成功');
+                if(res != '' && res != '库存不足'){
+                    layer.msg('请先登录',{time:1200},function(){
+                        $('body').html(res);
+                    });
+                }
+                if(res == '库存不足'){
+                    layer.msg('库存不足');
+                    $('#btnCart').find('i').empty();
+                }
+                if(res == ''){
+                    $('.fr').find('i').find('b').show();
+                    $('.fr').find('i').find('b').text(num+1);
+                    layer.msg('加入成功');
+                }
             })
         })
         //跳转到 购物车

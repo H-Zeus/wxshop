@@ -36,19 +36,35 @@ class IndexController extends Controller
             'user_id' => session('userInfo')['user_id'],
             'goods_id' => $request->goods_id
         ];
-        //判断购物车中是否已有该商品
-        $check = $cart_model->where($data)->first();
-        if($check){
-            //累加
-            $cart_model->where($data)
-                    ->update([
-                        'buy_number' => $check['buy_number']+1,
-                        'status' => 1,
-                    ]);
+        //查询出当前商品的购物车商品数量
+        $buy_number = $cart_model
+                        ->where(['goods_id'=>$request->goods_id,'user_id'=>session('userInfo')['user_id']])
+                        ->select('buy_number')
+                        ->first()['buy_number'];
+        //查询出当前商品库存
+        $goods_model = new Goods;
+        $goods_num = $goods_model
+                    ->where(['goods_id'=>$request->goods_id])
+                    ->select('goods_num')
+                    ->first()['goods_num'];
+        //判断是否超出库存
+        if($buy_number >= $goods_num){
+            return '库存不足';
         }else{
-            //入库
-            $data['create_time'] = time();
-            $cart_model->insert($data);
+            //判断购物车中是否已有该商品
+            $check = $cart_model->where($data)->first();
+            if($check){
+                //累加
+                $cart_model->where($data)
+                        ->update([
+                            'buy_number' => $check['buy_number']+1,
+                            'status' => 1,
+                        ]);
+            }else{
+                //入库
+                $data['create_time'] = time();
+                $cart_model->insert($data);
+            }
         }
     }
 
@@ -380,13 +396,15 @@ class IndexController extends Controller
     }
 
     /** 设置 */
-    public function set(Request $request,$quit=0)
+    public function set()
     {
-        if($quit=='quit'){
-            //退出登录
-            $request->session()->flush();
-        }
         return view('set');
+    }
+    /** 退出登录 */
+    public function logout(Request $request)
+    {
+        $request->session()->flush();
+        return redirect('/userpage');
     }
 
     /** 收货地址 */
@@ -402,6 +420,18 @@ class IndexController extends Controller
     public function writeaddr(Request $request)
     {
         if($request->ajax()){
+            if($request->address_name == ''){
+                return '收货人不可为空!';
+            }
+            if($request->address_tel == ''){
+                return '手机号码不可为空!';
+            }
+            if($request->address == ''){
+                return '所在区域不可为空!';
+            }
+            if($request->address_detail == ''){
+                return '详细地址不可为空!';
+            }
             $data = $request->all();
             unset($data['_token']);
             $user_id = session('userInfo')['user_id'];
@@ -435,6 +465,15 @@ class IndexController extends Controller
     /** 设置默认收货地址 */
     public function setdefaultaddress(Request $request)
     {
+        if($request->address_name == ''){
+            return '收货人不可为空!';
+        }
+        if($request->address_tel == ''){
+            return '手机号码不可为空!';
+        }
+        if($request->address_detail == ''){
+            return '详细地址不可为空!';
+        }
         $address_id = $request->address_id;
         $user_id = session('userInfo')['user_id'];
         $address_model = new Address;
@@ -527,6 +566,16 @@ class IndexController extends Controller
             $user_tel = $request->user_tel;
             $user_pwd = $request->user_pwd;
             $keycode = $request->code;
+            //验证
+            if($user_tel == ''){
+                return '手机号不能为空';
+            }
+            if($user_pwd == ''){
+                return '密码不能为空';
+            }
+            if($keycode == ''){
+                return '验证码不能为空';
+            }
             $code = session('captcha_code');
             //判断验证码是否正确
             if($keycode != $code){
@@ -559,6 +608,16 @@ class IndexController extends Controller
     public function register(Request $request)
     {
         if($request->ajax()){
+            //验证
+            if($request->user_tel == ''){
+                return '手机号不能为空';
+            }
+            if($request->user_pwd == ''){
+                return '密码不能为空';
+            }
+            if($request->keycode == ''){
+                return '验证码不能为空';
+            }
             $data = $request->all();
             unset($data['_token']);
             $data['user_pwd'] = encrypt($data['user_pwd']);
@@ -596,7 +655,20 @@ class IndexController extends Controller
 
     /** 发送短信 */
     public function sendsms(Request $request){
+        $user_pwd = $request->user_pwd;
         $user_tel = $request->user_tel;
+        if($user_tel == ''){
+            return '手机号不能为空';
+        }
+        //查询手机号是否唯一
+        $user_model = new User;
+        $check = $user_model->where(['user_tel'=>$user_tel])->first();
+        if(!empty($check)){
+            return '用户名已存在';
+        }
+        if($user_pwd == ''){
+            return '密码不能为空';
+        }
         //随机生成验证码
         $code = Common::createcode(4);
         //发送短信

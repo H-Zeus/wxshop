@@ -32,32 +32,32 @@
 			<ul class="slides" style="width: 600%; transition-duration: 0.4s; transform: translate3d(-828px, 0px, 0px);">
 				<li style="width: 414px; float: left; display: block;" class="clone">
 					<a href="javascript:void(0);">
-						<img src="https://img20.360buyimg.com/da/jfs/t1/27202/9/9209/296326/5c7c906fEd4d02714/0be5d8223ae9c0f1.jpg" alt="">
+						<img src="{{url('/uploads/1.jpg')}}" alt="">
 					</a>
 				</li>
 				<li class="" style="width: 414px; float: left; display: block;">
 					<a href="javascript:void(0);">
-						<img src="https://img20.360buyimg.com/da/jfs/t1/9987/40/10930/483460/5c25fc52Eb74fabdb/07b3f9394d9633c4.jpg" alt="">
+						<img src="{{url('/uploads/2.jpg')}}" alt="">
 					</a>
 				</li>
 				<li style="width: 414px; float: left; display: block;" class="flex-active-slide">
 					<a href="javascript:void(0);">
-						<img src="https://img14.360buyimg.com/da/jfs/t1/31415/22/3653/203144/5c779edeE8cb5c255/3523458c866f31de.jpg" alt="">
+						<img src="{{url('/uploads/3.jpg')}}" alt="">
 					</a>
 				</li>
 				<li style="width: 414px; float: left; display: block;" class="">
 					<a href="javascript:void(0);">
-						<img src="https://img12.360buyimg.com/da/jfs/t1/31413/7/4354/576747/5c7cba2fE87c9c3fc/9567f38d54528979.jpg" alt="">
+						<img src="{{url('/uploads/4.jpg')}}" alt="">
 					</a>
 				</li>
 				<li style="width: 414px; float: left; display: block;" class="">
 					<a href="javascript:void(0);">
-						<img src="https://img20.360buyimg.com/da/jfs/t1/9987/40/10930/483460/5c25fc52Eb74fabdb/07b3f9394d9633c4.jpg" alt="">
+						<img src="{{url('/uploads/5.jpg')}}" alt="">
 					</a>
 				</li>
 				<li class="clone" style="width: 414px; float: left; display: block;">
 					<a href="javascript:void(0);">
-						<img src="https://img14.360buyimg.com/da/jfs/t1/31415/22/3653/203144/5c779edeE8cb5c255/3523458c866f31de.jpg" alt="">
+						<img src="{{url('/uploads/6.jpg')}}" alt="">
 					</a>
 				</li>
 			</ul>
@@ -69,7 +69,7 @@
 		@foreach($categoryInfo as $v)
 			<li>
 				<a href="/allshops/{{$v->cate_id}}" id="btnNew">
-					<i class="xinpin"></i>
+					<i class="fenlei"></i>
 					<span class="title">{{$v->cate_name}}</span>
 				</a>
 			</li>
@@ -77,7 +77,7 @@
 		</ul>
 	</div>
 	<!--导航-->
-	<div class="success-tip">
+	<!-- <div class="success-tip">
 		<div class="left-icon"></div>
 		<ul class="right-con">
 			<li>
@@ -96,7 +96,7 @@
 				</span>
 			</li>
 		</ul>
-	</div>
+	</div> -->
 
 	<!-- 商品列表 -->
 	<div class="line guess">
@@ -220,11 +220,17 @@
             var goods_id = _this.attr('goods_id');
             var _token = $('#_token').val();
             $.ajax({
-                url:'cartadd',
+                url:'/cartadd',
                 type:'post',
                 data:{goods_id:goods_id,_token:_token}
             }).done(function(res){
-                // console.log(res);
+								if(res != '' && res != '库存不足'){
+                    $('body').html(res);
+                }
+                if(res == '库存不足'){
+                    layer.msg('库存不足');
+                    $('#btnCart').find('i').empty();
+                }
             })
         })
     })

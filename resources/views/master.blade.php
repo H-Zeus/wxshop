@@ -11,7 +11,6 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <link rel="stylesheet" href="{{url('layui/css/layui.css')}}">
     <link href="{{url('css/index.css')}}" rel="stylesheet" type="text/css" />
     <link href="{{url('layui/css/layui.css')}}" rel="stylesheet" type="text/css" />
     <script src="{{url('layui/layui.js')}}"></script>
@@ -23,7 +22,6 @@
 @yield('content')
 
 <script src="{{url('js/jquery-1.11.2.min.js')}}"></script>
-<script src="{{url('layui/layui.js')}}"></script> 
 <script src="{{url('js/all.js')}}"></script>
 <script src="{{url('js/index.js')}}"></script>
 <script src="{{url('js/lazyload.min.js')}}"></script>

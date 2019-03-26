@@ -26,9 +26,10 @@
                     <a href='{{url("/shopcontent/$v->goods_id")}}' class="gray6">{{$v->goods_name}}</a>
                     <span class="gray9">
                         <em>剩余{{$v->goods_num}}件</em>
+                        <em style="float:right;color:red">￥{{$v->self_price}}/件</em>
                     </span>
                     <div class="num-opt">
-                        <em class="num-mius dis min"><i></i></em>
+                        <em class="num-mius min"><i></i></em>
                         <input class="text_box key" cart_id="{{$v->cart_id}}" name="num" maxlength="6" type="text" value="{{$v->buy_number}}" price="{{$v->self_price}}" codeid="12501977">
                         <em class="num-add add"><i></i></em>
                     </div>
@@ -104,6 +105,7 @@
         var _token = $('#_token').val();
         $(".add").click(function () {
             var t = $(this).prev();
+            var _this = $(this);
             var cart_id = $(this).prev().attr('cart_id');
             t.val(parseInt(t.val()) + 1);
             var buy_number = $(this).prev().val();
@@ -114,14 +116,19 @@
                 data:{_token:_token,cart_id:cart_id,buy_number:buy_number},
                 async:false
             }).done(function(res){
-                layer.msg(res);
-                if(res != '修改成功'){
+                if(res == '错误！购买数量已超出库存'){
+                    _this.addClass('dis');
                     t.val(parseInt(t.val()) - 1);
+                }else{
+                    layer.msg(res);
+                    t.prev().removeClass('dis');
                 }
             })
         })
         $(".min").click(function () {
             var t = $(this).next();
+            var _this = $(this);
+            if(t.val() <= 2){_this.addClass('dis');}
             if(t.val()>1){
                 var cart_id = $(this).next().attr('cart_id');
                 t.val(parseInt(t.val()) - 1);
@@ -134,6 +141,7 @@
                     async:false
                 }).done(function(res){
                     layer.msg(res);
+                    t.next().removeClass('dis');
                     if(res != '修改成功'){
                         t.val(parseInt(t.val()) + 1);
                     }

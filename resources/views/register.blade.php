@@ -197,10 +197,12 @@
         //获取验证码
         $('.sendcode').click(function(){
             var user_tel = $('#userMobile').val();
+            var user_pwd = $('#user_pwd').val();
+            var keycode = $('#keycode').val();
             $.ajax({
                 url:"/register/sendsms",
                 type:'post',
-                data:{_token:_token,user_tel:user_tel},
+                data:{_token:_token,user_tel:user_tel,user_pwd:user_pwd},
             }).done(function(res){
                 layer.msg(res);
                 if(res == '发送成功'){

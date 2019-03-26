@@ -37,7 +37,9 @@ Route::any('verify/create','CaptchaController@create');
 //先判断是否登录
 Route::group(['middleware'=>'login'],function(){
   //我的设置
-  Route::any('set/{quit?}',"IndexController@set");
+  Route::any('/set',"IndexController@set");
+  //我的设置
+  Route::any('/logout',"IndexController@logout");
   //收货地址
   Route::any('address',"IndexController@address");
   //添加收货地址

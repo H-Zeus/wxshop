@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-
+use Illuminate\Support\Facades\Redirect;
 class LoginMiddleware
 {
     /**
@@ -18,7 +18,8 @@ class LoginMiddleware
         //判断是否登录
         if(!session('userInfo')){
             // echo "<script> alert('请先登录');location.href='/userpage';</script>"; 
-            return redirect('userpage');
+            return redirect('/userpage');
+            // return Redirect::guest('/userpage'); 
         }
         return $next($request);
     }
