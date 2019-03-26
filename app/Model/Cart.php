@@ -28,14 +28,14 @@ class Cart extends Model
      */
     public $timestamps = false;
 
-    /**
-     * 更改价格显示。
-     *
-     * @param  string  $value
-     * @return string
-     */
-    public function getSelfPriceAttribute($value)
-    {
-        return number_format($value,'2','.',',');
-    }
+    // /**
+    //  * 更改价格显示。
+    //  *
+    //  * @param  string  $value
+    //  * @return string
+    //  */
+    // public function getSelfPriceAttribute($value)
+    // {
+    //     return number_format($value,'2','.',',');
+    // }
 }

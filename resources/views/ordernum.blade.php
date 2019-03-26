@@ -67,7 +67,7 @@
     $(function(){
         $('.update').click(function(){
             // location.href="{{url('/address')}}"
-            layer.msg('此功能暂时停用！！')
+            layer.msg('此功能暂时停用！！<br>请手动切换默认地址')
         })
     })
 </script>
