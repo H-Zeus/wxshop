@@ -59,7 +59,7 @@
 
     </div>
     <div class="confirmaddr">
-        <a href="">确认地址</a>
+        <a href="{{url('/shopcart/payment')}}/{{$id}}">确认地址</a>
     </div>
 </body>
 @endsection

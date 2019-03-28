@@ -49,7 +49,6 @@
         <div class="shopsinfo">
             <h3>{{$goodsInfo->goods_name}}</h3>
             <p class="price">价值：￥<i>{{$goodsInfo->self_price}}</i></p>
-            <p>订单号：C17061673490875027850</p>
         </div>
         <div class="hot-line">
             <i></i><span>客服热线：400-666-2110</span>
@@ -57,7 +56,7 @@
 
     </div>
     <div class="confirmaddr">
-        <a href="">确认地址</a>
+        <a href="{{url('/shopcart/payment')}}/{{$goodsInfo->goods_id}}">确认地址</a>
     </div>
 </body>
 @endsection

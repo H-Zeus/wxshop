@@ -139,7 +139,7 @@ class IndexController extends Controller
         }
     }
 
-    /** 立即购买 */
+    /** 点击-立即购买 */
     public function ordersupplyment($id)
     {
         //获取商品数据
@@ -155,11 +155,11 @@ class IndexController extends Controller
         }
         return view('ordersupplyment',['goodsInfo'=>$goodsInfo,'addressInfo'=>$addressInfo]);
     }
-    /** 订单结算 */
+    /** 点击-去订单 */
     public function ordersum($id)
     {
         $cart_id = $id;
-        $cart_id = rtrim($cart_id,',');
+        $cart_id = $id = rtrim($cart_id,',');
         $cart_id = explode(',',$cart_id);
         //获取商品数据
         $cart_model = new Cart;
@@ -175,7 +175,33 @@ class IndexController extends Controller
         if($addressInfo == ''){
             $addressInfo= '[]';
         }
-        return view('ordernum',['goodsInfo'=>$goodsInfo,'addressInfo'=>$addressInfo]);
+        return view('ordernum',['goodsInfo'=>$goodsInfo,'addressInfo'=>$addressInfo,'id'=>$id]);
+    }
+    /** 点击-确认地址 */
+    public function payment($id)
+    {
+        if(strpos($id,',') !== false){
+            //多商品
+            $cart_id = explode(',',$id);
+            $cart_model = new Cart;
+            $goodsInfo = $cart_model
+                        ->whereIn('cart_id',$cart_id)
+                        ->join('shop_goods','shop_cart.goods_id','=','shop_goods.goods_id')
+                        ->get();
+            return view('payments',['goodsInfo'=>$goodsInfo]);
+        }else{
+            //单商品
+            //获取商品数据
+            $where = [
+                'goods_id' => $id,
+            ];
+            $goodsInfo = DB::table('shop_goods')
+                        ->where($where)
+                        ->first();
+            //购买件数 固定1
+            $goodsInfo->buy_number = 1;
+            return view('payment',['goodsInfo'=>$goodsInfo]);
+        }
     }
 
     /** 所有商品 */
@@ -399,6 +425,72 @@ class IndexController extends Controller
     {
         return view('set');
     }
+    /** 安全设置 */
+    public function safeset()
+    {
+        return view('safeset');
+    }
+    /** 修改登录密码 */
+    public function loginpwd(Request $request)
+    {
+        if($request->ajax()){
+            $old_pwd = $request->old_pwd;
+            $user_pwd = $request->user_pwd;
+            $user_repwd = $request->user_repwd;
+
+            $validate = Validator::make($request->all(),[
+                'old_pwd'=>"required",
+                'user_pwd'=>"required|min:6|max:12",
+                'user_repwd'=>"required"
+            ],[
+                "old_pwd.required"=>'当前密码为空',
+                "user_pwd.required"=>'新密码不为空',
+                "user_pwd.min"=>"新密码不能小于6位",
+                "user_pwd.max"=>"新密码不能大于12位",
+                "user_repwd.required"=>"确认新密码为空",
+            ]);
+            static $str = '';
+            if($validate->fails()){
+                $errors  = $validate->errors()->getMessages();
+                foreach ($errors as $v){
+                    $str .= implode('&&',$v)."<br>";
+                }
+                return $str;
+            }
+            //验证
+            if($old_pwd == ''){return '当前密码为空！！';}
+            if($user_pwd == ''){return '新密码为空！！';}
+            $reg = "/^[a-zA-Z0-9]{6,16}$/";
+            if(!preg_match($reg,$user_pwd)){return '请输入6-16位数字、字母组成的新密码';}
+            if($user_repwd == ''){return '确认新密码为空！！';}
+            if($user_pwd !== $user_repwd){return '新密码与确认密码不一致！！';}
+            //从数据库中取出当前密码 并解析 对比
+            $user_model = new User;
+            $user_id = session('userInfo')['user_id'];
+            $db_user_pwd = decrypt($user_model
+                            ->where(['user_id'=>$user_id])
+                            ->select('user_pwd')
+                            ->first()['user_pwd']);
+            if($old_pwd !== $db_user_pwd){return '密码错误！！';}
+            //修改密码
+            $res = $user_model->where(['user_id'=>$user_id])->update(['user_pwd'=>encrypt($user_pwd)]);
+            if($res){
+                return '修改成功';
+            }else{
+                return '修改失败';
+            }
+        }else{
+            //获取当前账号
+            $user_id = session('userInfo')['user_id'];
+            $user_model = new User;
+            $userInfo = $user_model->where(['user_id'=>$user_id])->first();
+            $user_tel = $userInfo->user_tel;
+            $left = substr($user_tel,0,3);
+            $right = substr($user_tel,7,4);
+            $userInfo['user_tel'] = $left.'****'.$right;
+            return view('mody-loginpwd',['userInfo'=>$userInfo]);
+        }
+    }
     /** 退出登录 */
     public function logout(Request $request)
     {
@@ -537,7 +629,34 @@ class IndexController extends Controller
     /** 编辑个人资料 */
     public function edituser()
     {
-        return view('edituser');
+        $user_id = session('userInfo')['user_id'];
+        $user_model = new User;
+        $userInfo = $user_model->where(['user_id'=>$user_id])->first();
+        return view('edituser',['userInfo'=>$userInfo]);
+    }
+    /** 编辑个人资料 */
+    public function namemodify(Request $request)
+    {
+        if($request->ajax()){
+            $user_name = $request->user_name;
+            $user_id = session('userInfo')['user_id'];
+            //修改user表中数据
+            $user_model = new User;
+            $res = $user_model->where(['user_id'=>$user_id])->update(['user_name'=>$user_name]);
+            if($res != 0){
+                $userInfo = [
+                    'user_id' => $user_id,
+                    'user_name' => $user_name
+                ];
+                session(['userInfo'=>$userInfo]);
+                return '修改成功';
+            }else{
+                return '数据无改动';
+            }
+        }else{
+            $user_name = session('userInfo')['user_name'];
+            return view('nicknamemodify',['user_name'=>$user_name]);
+        }
     }
 
     /** 购物记录 */
@@ -567,11 +686,11 @@ class IndexController extends Controller
                 'user_pwd'=>"required|min:6|max:12",
                 'code'=>"required"
             ],[
-                "user_tel.required"=>'手机号不为空',
-                "user_pwd.required"=>'密码不为空',
+                "user_tel.required"=>'手机号为空',
+                "user_pwd.required"=>'密码为空',
                 "user_pwd.min"=>"密码不能小于6位",
                 "user_pwd.max"=>"密码不能大于12位",
-                "code.required"=>"验证码不为空",
+                "code.required"=>"验证码为空",
             ]);
             static $str = '';
             if($validate->fails()){
@@ -585,15 +704,9 @@ class IndexController extends Controller
             $user_pwd = $request->user_pwd;
             $keycode = $request->code;
             //验证
-            if($user_tel == ''){
-                return '手机号不能为空';
-            }
-            if($user_pwd == ''){
-                return '密码不能为空';
-            }
-            if($keycode == ''){
-                return '验证码不能为空';
-            }
+            if($user_tel == ''){return '手机号不能为空';}
+            if($user_pwd == ''){return '密码不能为空';}
+            if($keycode == ''){return '验证码不能为空';}
             $code = session('captcha_code');
             //判断验证码是否正确
             if($keycode != $code){
@@ -621,6 +734,62 @@ class IndexController extends Controller
             return view('login');
         }
     }
+    /** 找回密码 */
+    public function findpwd(Request $request)
+    {
+        if($request->ajax()){
+            $validate = Validator::make($request->all(),[
+                'user_tel'=>"required",
+                'keycode'=>"required"
+            ],[
+                "user_tel.required"=>'手机号为空',
+                "keycode.required"=>"验证码为空",
+            ]);
+            static $str = '';
+            if($validate->fails()){
+                $errors  = $validate->errors()->getMessages();
+                foreach ($errors as $v){
+                    $str .= implode('&&',$v)."<br>";
+                }
+                return $str;
+            }
+            $keycode = $request->keycode;
+            $code = session('sendInfo')['sendCode'];
+            //判断验证码是否正确
+            if($keycode === $code){
+                return '验证码正确';
+            }else{
+                return '验证码错误';
+            }
+        }else{
+            return view('findpwd');
+        }
+    }
+    /** 重置密码页面 */
+    public function resetpassword(Request $request)
+    {
+        $old_tel = $request->old_tel;
+        $user_tel = session('sendInfo')['sendTel'];
+        return view('resetpassword',['user_tel'=>$user_tel]);
+        if($old_tel === $user_tel){
+            return view('resetpassword');
+        }else{
+            return '<h1>请合法操作<h1>';
+        }
+    }
+    /** 确认重置 */
+    public function resetpwd(Request $request)
+    {
+        $user_pwd = encrypt($request->user_pwd);
+        $user_tel = $request->user_tel;
+        $user_model = new User;
+        $res = $user_model->where(['user_tel'=>$user_tel])->update(['user_pwd'=>$user_pwd]);
+        if($res){
+            return '修改成功';
+        }else{
+            return '修改失败';
+        }
+    }
 
     /** 注册 */
     public function register(Request $request)
@@ -631,12 +800,12 @@ class IndexController extends Controller
                 'user_pwd'=>"required|min:6|max:12",
                 'keycode'=>"required"
             ],[
-                "user_tel.required"=>'手机号不为空',
+                "user_tel.required"=>'手机号为空',
                 "user_tel.unique"=>'手机号已存在',
-                "user_pwd.required"=>'密码不为空',
+                "user_pwd.required"=>'密码为空',
                 "user_pwd.min"=>"密码不能小于6位",
                 "user_pwd.max"=>"密码不能大于12位",
-                "keycode.required"=>"验证码不为空",
+                "keycode.required"=>"验证码为空",
             ]);
             static $str = '';
             if($validate->fails()){
@@ -707,6 +876,35 @@ class IndexController extends Controller
         }
         if($user_pwd == ''){
             return '密码不能为空';
+        }
+        //随机生成验证码
+        $code = Common::createcode(4);
+        //发送短信
+        $res = Common::sendSms($user_tel,$code);
+        if($res){
+            $sendInfo = [
+                'sendTime' => time(),
+                'sendCode' => $code,
+                'sendTel' => $user_tel
+            ];
+            session(['sendInfo'=>$sendInfo]);
+            return '发送成功';
+        }else{
+            return '发送失败';
+        }
+    }
+    /** 找回密码-发送短信 */
+    public function sendsmspwd(Request $request){
+        $user_tel = $request->user_tel;
+        if($user_tel == ''){return '手机号不能为空';}
+        $reg = '/^[0-9]{11}$/';
+        if(!preg_match($reg,$user_tel)){return '手机号格式错误';}
+
+        //查询手机号是否存在
+        $user_model = new User;
+        $check = $user_model->where(['user_tel'=>$user_tel])->first();
+        if(empty($check)){
+            return '手机号不存在';
         }
         //随机生成验证码
         $code = Common::createcode(4);

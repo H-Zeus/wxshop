@@ -39,7 +39,7 @@
                 <a id="btnLogin" href="javascript:;" class="orangeBtn loginBtn">登录</a>
             </div>
             <div class="forget">
-                <a href="javascript:void(0);">忘记密码？</a><b></b>
+                <a href="{{url('/findpwd')}}">忘记密码？</a><b></b>
                 <a href="{{url('/register')}}">新用户注册</a>
             </div>
             <div id="replace" style="color:red;font-size:20px"></div>

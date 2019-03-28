@@ -27,10 +27,18 @@ Route::any('shopcontent/{goods_id}',"IndexController@shopcontent");
 Route::any('userpage',"IndexController@userpage");
 //登录
 Route::any('login',"IndexController@login");
+//忘记密码
+Route::any('findpwd',"IndexController@findpwd");
+//重置密码页面
+Route::any('resetpassword',"IndexController@resetpassword");
+//确认重置
+Route::post('resetpwd',"IndexController@resetpwd");
 //注册
 Route::any('register',"IndexController@register");
 //发送验证码
 Route::any('/register/sendsms',"IndexController@sendsms");
+//找回密码-发送验证码
+Route::any('/findpwd/sendsms',"IndexController@sendsmspwd");
 //图像验证码
 Route::any('verify/create','CaptchaController@create');
 
@@ -38,7 +46,11 @@ Route::any('verify/create','CaptchaController@create');
 Route::group(['middleware'=>'login'],function(){
   //我的设置
   Route::any('/set',"IndexController@set");
-  //我的设置
+  //安全设置
+  Route::any('/set/safeset',"IndexController@safeset");
+  //安全设置
+  Route::any('/set/safeset/loginpwd',"IndexController@loginpwd");
+  //退出登录
   Route::any('/logout',"IndexController@logout");
   //收货地址
   Route::any('address',"IndexController@address");
@@ -51,7 +63,9 @@ Route::group(['middleware'=>'login'],function(){
   //编辑收货地址
   Route::any('/address/writeaddr/update/{id}',"IndexController@writeaddrupdate");
   //编辑个人资料
-  Route::any('edituser',"IndexController@edituser");
+  Route::any('/edituser',"IndexController@edituser");
+  //编辑个人资料
+  Route::any('/edituser/namemodify',"IndexController@namemodify");
   //购物记录
   Route::any('buyrecord',"IndexController@buyrecord");
   //二维码分享
@@ -70,10 +84,12 @@ Route::group(['middleware'=>'login'],function(){
   Route::any('/shopcart/key',"IndexController@shopcartkey");
   //批量删除
   Route::any('/shopcart/remove',"IndexController@remove");
-  //立即购买
+  //点击-立即购买
   Route::any('/shopcart/ordersupplyment/{id}',"IndexController@ordersupplyment");
-  //去结算
+  //点击-去结算
   Route::any('/shopcart/ordersum/{id}',"IndexController@ordersum");
+  //点击-确认地址
+  Route::any('/shopcart/payment/{id}',"IndexController@payment");
 
 });
 
@@ -85,3 +101,10 @@ Route::any('newest/{id?}',"IndexController@newest");
 Route::any('up/{id?}',"IndexController@up");
 //条件：价值 由高到低
 Route::any('down/{id?}',"IndexController@down");
+
+//支付宝沙箱
+Route::group(['prefix'=>'alipay'],function(){
+  Route::get('mobilepay',"AliPayController@mobilepay");
+  Route::any('return',"AliPayController@re");
+  Route::any('notify',"AliPayController@notify");
+});

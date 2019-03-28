@@ -28,7 +28,7 @@
                     <h3>{{$userInfo['user_name']}}</h3>
                     <p>ID：{{sprintf("%06d",$userInfo['user_id'])}}</p>
                 </li>
-                <li class="next fr"><a href="{{url('edituser')}}"><s></s></a></li>
+                <li class="next fr"><a href="{{url('/edituser')}}"><s></s></a></li>
             </ul>
         </div>
     </div>
