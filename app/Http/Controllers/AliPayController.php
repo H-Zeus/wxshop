@@ -4,22 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Tools\alipay\wappay\service\AlipayTradeService;
 use App\Tools\alipay\wappay\buildermodel\AlipayTradeWapPayContentBuilder;
+use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Support\Facades\DB;
 class AliPayController extends Controller
 {
-    //手机支付
-    public function mobilepay($ordername='test',$price=100)
+    /**
+     * @content 手机支付
+     * @param mixed $ordername 订单名称
+     * @param tinyint $price 付款金额
+     * @param varchar $order_no 订单号
+     */
+    public function mobilepay(Request $request)
     {
         header("Content-type: text/html; charset=utf-8");
         $config = config('alipay');
-
+        if($request->post()){
             //商户订单号，商户网站订单系统中唯一订单号，必填
-            $out_trade_no = date("Ymdhis").mt_rand(11111,99999);
+            $out_trade_no = session('payInfo')['order_no'];
 
             //订单名称，必填
-            $subject = $ordername;
+            $subject = session('payInfo')['order_name'];
 
             //付款金额，必填
-            $total_amount = $price;
+            $total_amount = $request->price;
 
             //商品描述，可空
             $body = '';
@@ -38,14 +45,17 @@ class AliPayController extends Controller
             $result=$payResponse->wapPay($payRequestBuilder,$config['return_url'],$config['notify_url']);
 
             return ;
+        }
     }
 
     public function re()
     {
+        $order_id = session('payInfo')['order_id'];
+        DB::table('shop_order')->where(['order_id'=>$order_id])->update(['pay_status'=>2,'order_status'=>2]);
         return view('paysuccess');
     }
     public function notify()
     {
-        dd(2);   
+        dd('notify');
     }
 }

@@ -2,7 +2,7 @@
 
 @section('title','我的雪天')
 <link href="{{url('css/member.css')}}" rel="stylesheet" type="text/css" />
-<script src="js/jquery190_1.js" language="javascript" type="text/javascript"></script>
+<!-- <script src="js/jquery190_1.js" language="javascript" type="text/javascript"></script> -->
 @section('content')
 <body class="g-acc-bg">
     <!--触屏版内页头部-->
@@ -38,9 +38,9 @@
     <!--导航菜单-->
     
     <div class="sub_nav marginB person-page-menu">
-        <a href="{{url('buyrecord')}}"><s class="m_s1"></s>购物记录<i></i></a>
-        <a href="javascript:void(0);"><s class="m_s2"></s>获得的商品<i></i></a>
-        <a href="javascript:void(0);"><s class="m_s3"></s>我的晒单<i></i></a>
+        <a href="{{url('buyrecord')}}"><s class="m_s1"></s>购买记录<i></i></a>
+        <!-- <a href="javascript:void(0);"><s class="m_s2"></s>获得的商品<i></i></a> -->
+        <a href="{{url('recorddetail')}}"><s class="m_s3"></s>我的账单<i></i></a>
         <a href="{{url('mywallet')}}"><s class="m_s4"></s>我的钱包<i></i></a>
         <a href="{{url('address')}}"><s class="m_s5"></s>收货地址<i></i></a>
         <a href="javascript:void(0);" class="mt10"><s class="m_s6"></s>帮助与反馈<i></i></a>

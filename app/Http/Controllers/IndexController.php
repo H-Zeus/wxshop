@@ -11,6 +11,9 @@ use App\Common;
 use App\Model\Address;
 use Illuminate\Support\Facades\DB;
 use Validator;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
+use App\Model\Order;
 
 class IndexController extends Controller
 {
@@ -188,7 +191,7 @@ class IndexController extends Controller
                         ->whereIn('cart_id',$cart_id)
                         ->join('shop_goods','shop_cart.goods_id','=','shop_goods.goods_id')
                         ->get();
-            return view('payments',['goodsInfo'=>$goodsInfo]);
+            return view('payments',['goodsInfo'=>$goodsInfo,'id'=>$id]);
         }else{
             //单商品
             //获取商品数据
@@ -200,7 +203,136 @@ class IndexController extends Controller
                         ->first();
             //购买件数 固定1
             $goodsInfo->buy_number = 1;
-            return view('payment',['goodsInfo'=>$goodsInfo]);
+            return view('payment',['goodsInfo'=>$goodsInfo,'id'=>$id]);
+        }
+    }
+    /** 点击-立即支付 */
+    public function nowpay(Request $request)
+    {
+        $order_amount = $request->total; //总价
+        $user_id = session('userInfo')['user_id']; //用户id
+        $order_no = date('Ymdhis').rand(000001,999999); //订单号
+        if(strpos($request->cart_id,',')==false){ //单商品 购买数量  $buy_number 固定为1
+            $goods_id = $request->cart_id; //商品id
+            DB::beginTransaction(); //开启事务
+                //存入订单表
+                $res1 = $order_id = DB::table('shop_order')->insertGetId(['order_no' => $order_no,'user_id' => $user_id,'order_amount' => $order_amount,'create_time' => time()]);        
+                $goodsInfo = DB::table('shop_goods')->where(['goods_id'=>$goods_id])->first();
+                $order_name = $goodsInfo->goods_name;
+                //存入订单详情表
+                $res2 = DB::table('shop_order_detail')
+                ->insert([
+                    'order_id' => $order_id,
+                    'user_id' => $user_id,
+                    'goods_id' => $goods_id,
+                    'buy_number' => 1,
+                    'self_price' => $goodsInfo->self_price,
+                    'goods_name' => $goodsInfo->goods_name,
+                    'goods_img' => $goodsInfo->goods_img,
+                    'create_time' => time()
+                ]);
+                //减少库存
+                $goods_num = DB::table('shop_goods')->where(['goods_id'=>$goods_id])->first()->goods_num;
+                $res5 = DB::table('shop_goods')->where(['goods_id'=>$goods_id])->update(['goods_num'=>$goods_num-1]);
+                //查询收货地址 并存入收货信息表
+                $addressInfo = DB::table('shop_address')->where(['is_default'=>1])->first();
+                $res3 = DB::table('shop_order_address')
+                        ->insert([
+                            'order_id' => $order_id,
+                            'user_id' => $user_id,
+                            'address_name' => $addressInfo->address_name,
+                            'address_tel' => $addressInfo->address_tel,
+                            'address' => $addressInfo->address,
+                            'address_detail' => $addressInfo->address_detail,
+                            'create_time' => time()
+                        ]);
+                //判断同时执行成功
+                if($res1 && $res2 && $res3 && $res5){
+                    DB::commit(); //提交
+                    $payInfo = [
+                        'order_no' => $order_no,
+                        'order_name' => $order_name,
+                        'order_id' => $order_id
+                    ];
+                    session(['payInfo' => $payInfo]);
+                    return '请求成功';
+                }else{
+                    DB::rollBack(); //回滚
+                    return '请求失败';
+                }
+        }else{
+            //将订单存到数据库中
+            $cart_id = explode(',',$request->cart_id); //购物车id
+            $buy_number = explode(',',$request->buy_number); //购买数量
+            DB::beginTransaction(); //开启事务
+                //存入订单表
+                $res1 = $order_id = DB::table('shop_order')
+                        ->insertGetId([
+                            'order_no' => $order_no,
+                            'user_id' => $user_id,
+                            'order_amount' => $order_amount,
+                            'create_time' => time()
+                        ]);
+                //查出商品id 和 商品购买数量
+                $goods = DB::table('shop_cart')
+                        ->whereIn('cart_id',$cart_id)
+                        ->where(['user_id'=>$user_id])
+                        ->select('goods_id','buy_number')
+                        ->get();
+                $order_name = '';
+                foreach($goods as $k=>$v){
+                    $buy_number = $goods[$k]->buy_number;
+                    $goods_id = $goods[$k]->goods_id;
+                    $goodsInfo = DB::table('shop_goods')->where(['goods_id'=>$goods_id])->first();
+                    $order_name .= $goodsInfo->goods_name.'🔗';
+                    //存入订单详情表
+                    $res2 = DB::table('shop_order_detail')
+                        ->insert([
+                            'order_id' => $order_id,
+                            'user_id' => $user_id,
+                            'goods_id' => $goods_id,
+                            'buy_number' => $buy_number,
+                            'self_price' => $goodsInfo->self_price,
+                            'goods_name' => $goodsInfo->goods_name,
+                            'goods_img' => $goodsInfo->goods_img,
+                            'create_time' => time()
+                        ]);
+                    //减少库存
+                    $goods_num = DB::table('shop_goods')->where(['goods_id'=>$goods_id])->first()->goods_num;
+                    $res5 = DB::table('shop_goods')->where(['goods_id'=>$goods_id])->update(['goods_num'=>$goods_num-$buy_number]);
+                }
+                
+                //查询收货地址 并存入收货信息表
+                $addressInfo = DB::table('shop_address')->where(['is_default'=>1])->first();
+                $res3 = DB::table('shop_order_address')
+                        ->insert([
+                            'order_id' => $order_id,
+                            'user_id' => $user_id,
+                            'address_name' => $addressInfo->address_name,
+                            'address_tel' => $addressInfo->address_tel,
+                            'address' => $addressInfo->address,
+                            'address_detail' => $addressInfo->address_detail,
+                            'create_time' => time()
+                        ]);
+                //清理购物车中商品
+                $res4 = DB::table('shop_cart')
+                    ->whereIn('cart_id',$cart_id)
+                    ->update(['status'=>2,'buy_number'=>0]);
+                
+            //判断同时执行成功
+            if($res1 && $res2 && $res3 && $res4 && $res5){
+                DB::commit(); //提交
+                $payInfo = [
+                    'order_no' => $order_no,
+                    'order_name' => $order_name,
+                    'order_id' => $order_id
+                ];
+                session(['payInfo' => $payInfo]);
+                return '请求成功';
+            }else{
+                DB::rollBack(); //回滚
+                return '请求失败';
+            }   
         }
     }
 
@@ -323,10 +455,27 @@ class IndexController extends Controller
     /** 商品详情 */
     public function shopcontent($goods_id)
     {
-        //获取商品信息
         $goods_model = new Goods;
-        $goodsInfo = $goods_model->where(['goods_id'=>$goods_id])->first();
-
+        //判断是否存在缓存
+        // if(Cache::has('goodsInfo'.$goods_id)){
+        //     //获取商品信息
+        //     $goodsInfo = Cache::get('goodsInfo'.$goods_id);
+        //     echo 'from cache';
+        // }else{
+        //     //获取商品信息 
+        //     $goodsInfo = $goods_model->where(['goods_id'=>$goods_id])->first();
+        //     Cache::put('goodsInfo'.$goods_id,$goodsInfo,60);
+        //     echo 'from db';
+        // }
+        if(Redis::exists($goods_id)){
+            //获取商品信息
+            $goodsInfo = unserialize(Redis::get($goods_id));
+        }else{
+            //获取商品信息 
+            $goodsInfo = $goods_model->where(['goods_id'=>$goods_id])->first();
+            Redis::set($goods_id,serialize($goodsInfo));
+            Redis::expire($goods_id,60);
+        }
         //轮播图处理
         $goods_imgs = $goods_model->where(['goods_id'=>$goods_id])->select('goods_imgs')->first()['goods_imgs'];
         $goods_imgs = explode('|', rtrim($goods_imgs,'|'));
@@ -418,6 +567,17 @@ class IndexController extends Controller
             'user_name' => session('userInfo')['user_name']
         ];
         return view('userpage',['checkLogin'=>$checkLogin,'userInfo'=>$userInfo]);
+    }
+    /** 我的账单 */
+    public function recorddetail()
+    {
+        $order_model = new Order;
+        $user_id = session('userInfo')['user_id'];
+        $info = $order_model
+                ->where(['shop_order.user_id'=>$user_id])
+                ->join('shop_order_detail','shop_order.order_id','=','shop_order_detail.order_id')
+                ->get();
+        return view('recorddetail',['info'=>$info]);
     }
 
     /** 设置 */
@@ -659,10 +819,16 @@ class IndexController extends Controller
         }
     }
 
-    /** 购物记录 */
+    /** 购买记录 */
     public function buyrecord()
     {
-        return view('buyrecord');
+        $orderInfo = DB::table('shop_order')->where(['user_id'=>session('userInfo')['user_id']])->get();
+        if($orderInfo != '[]'){
+            $status = 1;
+        }else{
+            $status = 2;
+        }
+        return view('buyrecord',['orderInfo'=>$orderInfo,'status'=>$status]);
     }
 
     /** 二维码分享 */

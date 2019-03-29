@@ -16,7 +16,7 @@
 			<span><i></i></span>
 			<p>支付成功，请耐心等待！</p>
 			<div class="pay-btn">
-				<a href="javascript:void(0);" class="watch">查看状态</a>
+				<a href="{{url('recorddetail')}}" class="watch">查看状态</a>
 				<a href="{{url('/')}}">继续购物</a>
 			</div>
 		</div>

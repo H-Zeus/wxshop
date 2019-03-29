@@ -102,20 +102,20 @@
 <script src="{{url('js/all.js')}}"></script>
 <script src="{{url('layui/layui.js')}}"></script>
 
-
 <script>
 	
 	$(document).ready(function(){
 		var total=0;
+		var buy_number= '';
 		// console.log($('.g-pay-lst li').length); //获取一共有几条商品数据
 		for(var i = 0;i<$('.g-pay-lst li').length;i++){
 			total +=parseInt($('.g-pay-lst li').eq(i).find('dd em.price').text())*parseInt($('.g-pay-lst li').eq(i).find('dd em.number').text());
+            buy_number += $('.g-pay-lst li').eq(i).find('dd em.number').text()+',';
         }
-        console.log(total);
+        // console.log(total); //总金额
 		$('.gray9 .orange').html('<i>￥</i>'+total.toFixed(2));//修改总需支付金额显示数量
 		$('.wzf .orange').html('<span class="colorbbb">需要支付&nbsp;</span><b>￥</b>'+total.toFixed(2));//修改需要支付显示数量
 		$('.money').children('i').html(total.toFixed(2));//修改立即支付显示数量
-
 		// 获取账户总额
         var leftmoney =parseInt($('.other_pay .leftmoney span.gray9 em').text());
         
@@ -139,78 +139,107 @@
                 $(this).children('i').addClass('z-set');
 			}
 		})
-	})
-    // 密码框
-    var payPassword = $("#payPassword_container"),
-    _this = payPassword.find('i'),  
-    k=0,j=0,
-    password = '' ,
-    _cardwrap = $('#cardwrap');
-    //点击隐藏的input密码框,在6个显示的密码框的第一个框显示光标
-    payPassword.on('focus',"input[name='payPassword_rsainput']",function(){
-        var _this = payPassword.find('i');
-        if(payPassword.attr('data-busy') === '0'){ 
-        //在第一个密码框中添加光标样式
-           _this.eq(k).addClass("active");
-           _cardwrap.css('visibility','visible');
-           payPassword.attr('data-busy','1');
-        }
-        
-    }); 
-    //change时去除输入框的高亮，用户再次输入密码时需再次点击
-    payPassword.on('change',"input[name='payPassword_rsainput']",function(){
-        _cardwrap.css('visibility','hidden');
-        _this.eq(k).removeClass("active");
-        payPassword.attr('data-busy','0');
-    }).on('blur',"input[name='payPassword_rsainput']",function(){
-        _cardwrap.css('visibility','hidden');
-        _this.eq(k).removeClass("active");                  
-        payPassword.attr('data-busy','0');
-        
-    });
-    
-    //使用keyup事件，绑定键盘上的数字按键和backspace按键
-    payPassword.on('keyup',"input[name='payPassword_rsainput']",function(e){
-    
-    var  e = (e) ? e : window.event;
-    
-    //键盘上的数字键按下才可以输入
-    if(e.keyCode == 8 || (e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)){
-            k = this.value.length;//输入框里面的密码长度
-            l = _this.size();//6
-            for(;l--;){
-            //输入到第几个密码框，第几个密码框就显示高亮和光标（在输入框内有2个数字密码，第三个密码框要显示高亮和光标，之前的显示黑点后面的显示空白，输入和删除都一样）
-                if(l === k){
-                    _this.eq(l).addClass("active");
-                    _this.eq(l).find('b').css('visibility','hidden');
-                    
+
+        layui.use(['layer'],function(){
+            $('#btnPay').click(function(){
+                var payway = $("a[class='checked']").children('span').prop('class');//获取支付方式
+                if(payway == 'zfb'){
+                    $.ajax({
+                        url:"{{url('nowpay')}}",
+                        type:'post',
+                        data:{_token:'{{csrf_token()}}',total:total,cart_id:'{{$id}}',buy_number:buy_number}
+                    }).done(function(res){
+                        layer.msg(res,{time:1000},function(){
+                            if(res == '请求成功'){
+                                layer.msg('页面跳转中，请等待片刻···',{time:1200},function(){
+                                    $.ajax({
+                                        url:"{{url('alipay/mobilepay')}}",
+                                        type:'post',
+                                        data:{_token:'{{csrf_token()}}',price:total}
+                                    }).done(function(msg){
+                                        layer.msg(msg+'正在跳转');
+                                    })
+                                })
+                            }
+                        });
+                    })
                 }else{
-                    _this.eq(l).removeClass("active");
-                    _this.eq(l).find('b').css('visibility', l < k ? 'visible' : 'hidden');
-                }               
-            if(k === 6){
-                j = 5;
-            }else{
-                j = k;
-            }
-            $('#cardwrap').css('left',j*43+'px');
-        
-            }
-        }else{
-        //输入其他字符，直接清空
-            var _val = this.value;
-            this.value = _val.replace(/\D/g,'');
-        }
-    }); 
-
-
-    $('#btnPay').click(function(){
-        layer.open({
-            type: 1,
-            title: false,
-            content: $('.paywrapp')
+                    layer.msg('<center>小店目前仅支持支付宝支付🙏🙏<br>给您带来的不便🙏🙏<br>敬请谅解🙏🙏</center>');
+                }
+            })
         })
-    })
+	})
+    // // 密码框
+        // var payPassword = $("#payPassword_container"),
+        // _this = payPassword.find('i'),  
+        // k=0,j=0,
+        // password = '' ,
+        // _cardwrap = $('#cardwrap');
+        // //点击隐藏的input密码框,在6个显示的密码框的第一个框显示光标
+        // payPassword.on('focus',"input[name='payPassword_rsainput']",function(){
+        //     var _this = payPassword.find('i');
+        //     if(payPassword.attr('data-busy') === '0'){ 
+        //     //在第一个密码框中添加光标样式
+        //        _this.eq(k).addClass("active");
+        //        _cardwrap.css('visibility','visible');
+        //        payPassword.attr('data-busy','1');
+        //     }
+            
+        // }); 
+        // //change时去除输入框的高亮，用户再次输入密码时需再次点击
+        // payPassword.on('change',"input[name='payPassword_rsainput']",function(){
+        //     _cardwrap.css('visibility','hidden');
+        //     _this.eq(k).removeClass("active");
+        //     payPassword.attr('data-busy','0');
+        // }).on('blur',"input[name='payPassword_rsainput']",function(){
+        //     _cardwrap.css('visibility','hidden');
+        //     _this.eq(k).removeClass("active");                  
+        //     payPassword.attr('data-busy','0');
+            
+        // });
+        
+        // //使用keyup事件，绑定键盘上的数字按键和backspace按键
+        // payPassword.on('keyup',"input[name='payPassword_rsainput']",function(e){
+        
+        // var  e = (e) ? e : window.event;
+        
+        // //键盘上的数字键按下才可以输入
+        // if(e.keyCode == 8 || (e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)){
+        //         k = this.value.length;//输入框里面的密码长度
+        //         l = _this.size();//6
+        //         for(;l--;){
+        //         //输入到第几个密码框，第几个密码框就显示高亮和光标（在输入框内有2个数字密码，第三个密码框要显示高亮和光标，之前的显示黑点后面的显示空白，输入和删除都一样）
+        //             if(l === k){
+        //                 _this.eq(l).addClass("active");
+        //                 _this.eq(l).find('b').css('visibility','hidden');
+                        
+        //             }else{
+        //                 _this.eq(l).removeClass("active");
+        //                 _this.eq(l).find('b').css('visibility', l < k ? 'visible' : 'hidden');
+        //             }               
+        //         if(k === 6){
+        //             j = 5;
+        //         }else{
+        //             j = k;
+        //         }
+        //         $('#cardwrap').css('left',j*43+'px');
+            
+        //         }
+        //     }else{
+        //     //输入其他字符，直接清空
+        //         var _val = this.value;
+        //         this.value = _val.replace(/\D/g,'');
+        //     }
+        // }); 
+
+
+        // $('#btnPay').click(function(){
+        //     layer.open({
+        //         type: 1,
+        //         title: false,
+        //         content: $('.paywrapp')
+        //     })
+        // })
         
 </script>
 </body>

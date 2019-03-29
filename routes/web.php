@@ -90,6 +90,10 @@ Route::group(['middleware'=>'login'],function(){
   Route::any('/shopcart/ordersum/{id}',"IndexController@ordersum");
   //点击-确认地址
   Route::any('/shopcart/payment/{id}',"IndexController@payment");
+  //点击-立即支付
+  Route::post('/nowpay',"IndexController@nowpay");
+  //我的信息-我的订单
+  Route::any('/recorddetail',"IndexController@recorddetail");
 
 });
 
@@ -104,7 +108,7 @@ Route::any('down/{id?}',"IndexController@down");
 
 //支付宝沙箱
 Route::group(['prefix'=>'alipay'],function(){
-  Route::get('mobilepay',"AliPayController@mobilepay");
+  Route::post('mobilepay',"AliPayController@mobilepay");
   Route::any('return',"AliPayController@re");
   Route::any('notify',"AliPayController@notify");
 });

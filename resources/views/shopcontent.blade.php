@@ -31,14 +31,12 @@
                                     <img src='{{url("/uploads/goodsimg/$goodsInfo->goods_img")}}' style="height:80%" alt="">
                                 </a>
                             </li>
-
                             @foreach($goods_imgs as $v)
                             <li style="width: 414px; float: left; display: block;" class="flex-active-slide">
                                 <a href="javascript:void(0);"><img src='{{url("/uploads/goodsimg/$v")}}' style="height:80%" alt="">
                                 </a>
                             </li>
                             @endforeach
-
                         </ul>
                     </section>
                 </div>
