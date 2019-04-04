@@ -112,3 +112,5 @@ Route::group(['prefix'=>'alipay'],function(){
   Route::any('return',"AliPayController@re");
   Route::any('notify',"AliPayController@notify");
 });
+
+Route::get('/wechat/check','wechat\\WechatController@check');
