@@ -113,4 +113,7 @@ Route::group(['prefix'=>'alipay'],function(){
   Route::any('notify',"AliPayController@notify");
 });
 
-Route::get('/wechat/check','wechat\\WechatController@check');
+//微信绑定服务器
+Route::any('/wechat/check','wechat\\WechatController@check');
+//test
+Route::any('/wechat/test','wechat\\WechatController@test');
