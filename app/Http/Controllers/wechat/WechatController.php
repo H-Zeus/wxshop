@@ -12,7 +12,6 @@ class WechatController extends Controller
      */
     public function check(Request $request)
     {
-        dd(1);
         $signature = $request->signature; //微信加密签名
         $timestamp = $request->timestamp; //时间戳
         $nonce = $request->nonce; //随机数
