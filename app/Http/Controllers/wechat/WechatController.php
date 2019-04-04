@@ -15,6 +15,7 @@ class WechatController extends Controller
         $signature = $request->signature; //微信加密签名
         $timestamp = $request->timestamp; //时间戳
         $nonce = $request->nonce; //随机数
+        $echostr = $request->echostr; //随机字符串
         if($this->CheckSignature($signature,$timestamp,$nonce)){
             echo $echostr;exit;
         }
