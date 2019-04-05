@@ -95,7 +95,7 @@ class WechatController extends Controller
                     ]
                 ],
                 'userInfo' => [
-                    'apiKey' => '2a9d1f82c9394aa4b7e15b6038aea2e2',
+                    'apiKey' => 'fed693c74286411ca2e75c0f5d6eac3c',
                     'userId' => '9517'
                 ]
             ];
