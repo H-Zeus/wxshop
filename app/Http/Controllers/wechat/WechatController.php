@@ -57,6 +57,35 @@ class WechatController extends Controller
             $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
+        }else if(strpos($keywords,'天气')!=0){ //查询天气
+            //NowApi接口 参数
+            $appkey = '41389';
+            $sign = '3dd3bca194977e7a41d65e4904a8bf1b';
+            $weaid = substr($keywords,0,strpos($keywords,'天气')); //获取查询城市名称
+            $url = "http://api.k780.com/?app=weather.today&weaid=$weaid&appkey=$appkey&sign=$sign&format=json";
+            $url = file_get_contents($url);
+            $data = json_decode($url,true)['result'];
+            $msg = '城市：'.$data['citynm']."\r\n"
+            .'天气：'.$data['weather']."\r\n"
+            .'今日气温：'.$data['temperature']."\r\n"
+            .'当前温度：'.$data['temperature_curr']."\r\n"
+            .'湿度：'.$data['humidity']."\r\n"
+            .'风向：'.$data['wind']."\r\n"
+            .'风力：'.$data['winp']."\r\n";
+            $content = $msg;
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
+        }else if($keywords=='时间'){ //查询当前时间
+            //NowApi接口 参数
+            $appkey = '41389';
+            $sign = '3dd3bca194977e7a41d65e4904a8bf1b';
+            $url = "http://api.k780.com/?app=life.time&appkey=$appkey&sign=$sign&format=json";
+            $url = file_get_contents($url);
+            $data = json_decode($url,true)['result'];
+            $msg = $data['datetime_2']."\r\n".$data['week_2'];
+            $content = $msg;
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
         }else{
             //调用图灵机器人回复 关键词
             $data = [
@@ -73,28 +102,7 @@ class WechatController extends Controller
             $post_data = json_encode($data);
             $tuling_url = "http://openapi.tuling123.com/openapi/api/v2";
             $re = Wechat::HttpPost($tuling_url,$post_data);
-            $appkey = '41389';
-            $sign = '3dd3bca194977e7a41d65e4904a8bf1b';
-            if(stripos($keywords,'天气')!=0){ //查询天气
-                $weaid = substr($keywords,0,strlen($keywords)-6); //获取查询城市名称
-                $url = "http://api.k780.com/?app=weather.today&weaid=$weaid&appkey=$appkey&sign=$sign&format=json";
-                $url = file_get_contents($url);
-                $data = json_decode($url,true)['result'];
-                $msg = '城市：'.$data['citynm']."\r\n"
-                .'天气：'.$data['weather']."\r\n"
-                .'今日气温：'.$data['temperature']."\r\n"
-                .'当前温度：'.$data['temperature_curr']."\r\n"
-                .'湿度：'.$data['humidity']."\r\n"
-                .'风向：'.$data['wind']."\r\n"
-                .'风力：'.$data['winp']."\r\n";
-            }else if($keywords=='时间'){ //查询当前时间
-                $url = "http://api.k780.com/?app=life.time&appkey=$appkey&sign=$sign&format=json";
-                $url = file_get_contents($url);
-                $data = json_decode($url,true)['result'];
-                $msg = $data['datetime_2']."\r\n".$data['week_2'];
-            }else{
-                $msg = json_decode($re,true)['results'][0]['values']['text'];
-            }
+            $msg = json_decode($re,true)['results'][0]['values']['text'];
             $content = $msg;
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
@@ -127,13 +135,23 @@ class WechatController extends Controller
      */
     public function test()
     {
-        $appkey = '41389';
-        $sign = '3dd3bca194977e7a41d65e4904a8bf1b';
-        $url = "http://api.k780.com/?app=life.time&appkey=$appkey&sign=$sign&format=json";
-        $url = file_get_contents($url);
-        $data = json_decode($url,true)['result'];
-        $msg = '当前日期时间：'.$data['datetime_2']."\r\n"
-                .$data['week_2'];
-        print_r($msg);
-    }
+        $arr = array(
+            array("username"=>'张鹏飞','age'=>23,'sex'=>'男'),
+            array("username"=>'丽丽','age'=>20,'sex'=>'女'),
+            array("username"=>'小明','age'=>16,'sex'=>'男'),
+            array("username"=>'大明','age'=>20,'sex'=>'男'),
+        );
+        static $info = [];
+        foreach($arr as $k=>$v){
+            if($v['sex']=='男'){
+                unset($v['sex']);
+                $info['男'][$k] = $v;
+            }else{
+                unset($v['sex']);
+                $info['女'][$k] = $v;
+            }
+        }
+        print_r($info);
+        // dd($arr);
+    }  
 }
