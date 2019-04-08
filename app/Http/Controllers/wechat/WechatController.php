@@ -5,6 +5,8 @@ namespace App\Http\Controllers\wechat;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Model\Wechat;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\DB;
 
 class WechatController extends Controller
 {
@@ -15,7 +17,6 @@ class WechatController extends Controller
     {
         //推送消息
         $this->responseMsg();
-
         //校验微信签名
         $echostr = $_GET['echostr']; //随机字符串
         if($this->CheckSignature()){
@@ -56,6 +57,51 @@ class WechatController extends Controller
         if($keywords == '你好'){
             $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
+        }else if($keywords == '图片'){
+            $tpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Image>
+                            <MediaId><![CDATA[%s]]></MediaId>
+                        </Image>
+                    </xml>";
+            $MsgType = 'image';
+            $media_id = "BVxSi3v0_kRLEEHU3Xws7SOCQ5CqAdVy1QajgMPSnUCQ_wLOWvPf5k1WjUSw0id4";
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$media_id);
+            echo $resultStr;exit;
+        }else if($keywords == '小屋'){
+            $tpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <ArticleCount>1</ArticleCount>
+                        <Articles>
+                            <item>
+                            <Title><![CDATA[%s]]></Title>
+                            <Description><![CDATA[%s]]></Description>
+                            <PicUrl><![CDATA[%s]]></PicUrl>
+                            <Url><![CDATA[%s]]></Url>
+                            </item>
+                        </Articles>
+                    </xml>";
+            // $array = DB::table('material')->orderBy('create_time','desc')->first();
+            // $array = Redis::get('aaa');
+            $MsgType = 'news';
+            $Title = '我的小屋';
+            $Description = '欢迎来到我的小屋';
+            $PicUrl = url('/public/uploads/hh.gif');
+            $Url = 'https://www.baidu.com/';
+            $media_id = "BVxSi3v0_kRLEEHU3Xws7SOCQ5CqAdVy1QajgMPSnUCQ_wLOWvPf5k1WjUSw0id4";
+            // $Title = $array->m_title;
+            // $Description = $array->m_content;
+            // $PicUrl = url("public$array->m_path");
+            // $Url = $array->m_url;
+            // $media_id = $array->media_id;
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$Title,$Description,$PicUrl,$Url);
             echo $resultStr;exit;
         }else if(strpos($keywords,'天气')!=0){ //查询天气
             //NowApi接口 参数
@@ -124,8 +170,10 @@ class WechatController extends Controller
         $sign = sha1($str); //进行sha1加密
         //对比sign
         if($sign == $signature){
+
             return true;
         }else{
+
             return false;
         }
     }
@@ -135,23 +183,14 @@ class WechatController extends Controller
      */
     public function test()
     {
-        $arr = array(
-            array("username"=>'张鹏飞','age'=>23,'sex'=>'男'),
-            array("username"=>'丽丽','age'=>20,'sex'=>'女'),
-            array("username"=>'小明','age'=>16,'sex'=>'男'),
-            array("username"=>'大明','age'=>20,'sex'=>'男'),
-        );
-        static $info = [];
-        foreach($arr as $k=>$v){
-            if($v['sex']=='男'){
-                unset($v['sex']);
-                $info['男'][$k] = $v;
-            }else{
-                unset($v['sex']);
-                $info['女'][$k] = $v;
-            }
-        }
-        print_r($info);
-        // dd($arr);
+        $token = Wechat::GetAccessToken(); //获取access_token
+        $media_id = "RBzkOMGqT237UpQSo8Ff8cuoJ-v2GN_6JpNz2IkQmhDsoO-uXCNRD0Awsf1nvd1p";
+        $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=$token&media_id=$media_id";
+        $url = file_get_contents($url);
+        // $data = json_decode($url,true);
+        // $data = serialize($data);
+        // print_r($url);die;
+        // Redis::setex('test',600,$url);die;
+        // dd(Redis::get('test'));die;
     }  
 }

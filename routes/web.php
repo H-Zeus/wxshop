@@ -115,5 +115,7 @@ Route::group(['prefix'=>'alipay'],function(){
 
 //微信绑定服务器
 Route::any('/wechat/check','wechat\\WechatController@check');
+//上传媒体文件
+Route::any('/material/up','wechat\\MaterialController@index');
 //test
 Route::any('/wechat/test','wechat\\WechatController@test');
