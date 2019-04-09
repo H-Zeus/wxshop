@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Model\Wechat;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
+use App\Model\Material;
 
 class WechatController extends Controller
 {
@@ -73,7 +74,7 @@ class WechatController extends Controller
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$media_id);
             echo $resultStr;exit;
         }else if($keywords == '小屋'){
-            $tpl = "<xml>
+            $Htpl = "<xml>
                         <ToUserName><![CDATA[%s]]></ToUserName>
                         <FromUserName><![CDATA[%s]]></FromUserName>
                         <CreateTime><![CDATA[%s]]></CreateTime>
@@ -88,20 +89,17 @@ class WechatController extends Controller
                             </item>
                         </Articles>
                     </xml>";
-            // $array = DB::table('material')->orderBy('create_time','desc')->first();
-            // $array = Redis::get('aaa');
-            $MsgType = 'news';
-            $Title = '我的小屋';
-            $Description = '欢迎来到我的小屋';
-            $PicUrl = url('/public/uploads/hh.gif');
-            $Url = 'https://www.baidu.com/';
-            $media_id = "BVxSi3v0_kRLEEHU3Xws7SOCQ5CqAdVy1QajgMPSnUCQ_wLOWvPf5k1WjUSw0id4";
-            // $Title = $array->m_title;
-            // $Description = $array->m_content;
-            // $PicUrl = url("public$array->m_path");
-            // $Url = $array->m_url;
-            // $media_id = $array->media_id;
-            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$Title,$Description,$PicUrl,$Url);
+            $array = DB::table('material')->orderBy('create_time','desc')->first();
+            $MsgType = 'news';            
+            $Title = $array->m_title;
+            $Description = $array->m_content;
+            $PicUrl = url("public$array->m_path");
+            $Url = $array->m_url;
+            $media_id = $array->media_id;
+            $token = Wechat::GetAccessToken(); //获取access_token
+            $PicUrl = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=$token&media_id=$media_id";
+
+            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$MsgType,$Title,$Description,$PicUrl,$Url);
             echo $resultStr;exit;
         }else if(strpos($keywords,'天气')!=0){ //查询天气
             //NowApi接口 参数
@@ -183,14 +181,12 @@ class WechatController extends Controller
      */
     public function test()
     {
-        $token = Wechat::GetAccessToken(); //获取access_token
-        $media_id = "RBzkOMGqT237UpQSo8Ff8cuoJ-v2GN_6JpNz2IkQmhDsoO-uXCNRD0Awsf1nvd1p";
-        $url = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=$token&media_id=$media_id";
-        $url = file_get_contents($url);
-        // $data = json_decode($url,true);
-        // $data = serialize($data);
-        // print_r($url);die;
-        // Redis::setex('test',600,$url);die;
-        // dd(Redis::get('test'));die;
+        $grant_type	= env('WX_GRANT_TYPE');
+        $appid	= env('WX_APPID');
+        $secret	= env('WX_APPSECRET');
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=$grant_type&appid=$appid&secret=$secret";
+        $token = json_decode(file_get_contents($url),true)['access_token'];
+        echo $token;exit;
+
     }  
 }

@@ -119,3 +119,19 @@ Route::any('/wechat/check','wechat\\WechatController@check');
 Route::any('/material/up','wechat\\MaterialController@index');
 //test
 Route::any('/wechat/test','wechat\\WechatController@test');
+
+//后台
+Route::group(['prefix'=>'admin','namespace'=>'Admin'],function(){
+  //首页
+  Route::match(['get'],'/','WechatAdminController@index');
+  //laravel 欢迎页面
+  Route::match(['get'],'laravel','WechatAdminController@laravel');
+
+  //回复用户消息
+  Route::match(['get','post'],'textmessage','WechatAdminController@textmessage'); //文本
+  Route::match(['get','post'],'mixedmessage','WechatAdminController@mixedmessage'); //图片、语音、视频、音乐
+  Route::match(['get','post'],'newsmessage','WechatAdminController@newsmessage'); //图文
+
+  //上传媒体文件
+  Route::any('/upmessage','WechatAdminController@upmessage');
+});

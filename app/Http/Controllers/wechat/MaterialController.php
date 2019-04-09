@@ -8,7 +8,6 @@ use App\Model\Wechat;
 use CURLFile;
 use function GuzzleHttp\json_decode;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
 
 class MaterialController extends Controller
 {
@@ -61,25 +60,7 @@ class MaterialController extends Controller
                 return '没有文件被上传';
             }
         }else{
-            // Redis::setex('aaa',600,'test');
-            // $array = Redis::get('aaa');
-            // echo $array;
-            die;
-            $data = DB::table('material')->orderBy('create_time','desc')->first();
-            $Title = $data->m_title;
-            $Description = $data->m_content;
-            $PicUrl = url("public$data->m_path");
-            $Url = $data->m_url;
-            $media_id = $data->media_id;
-            var_dump($media_id);
-            echo '<br>';
-            $Title = '我的小屋';
-            $Description = '欢迎来到我的小屋';
-            $PicUrl = url('/public/uploads/hh.gif');
-            $Url = 'https://www.baidu.com/';
-            $media_id = "BVxSi3v0_kRLEEHU3Xws7SOCQ5CqAdVy1QajgMPSnUCQ_wLOWvPf5k1WjUSw0id4";
-            var_dump($media_id);
-            exit;
+            
             return view('wechat.index');
         }
     }
