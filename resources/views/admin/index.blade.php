@@ -36,7 +36,7 @@
   <div class="container">
     <div class="logo"><a href="index.html">L-admin</a></div>
     <div class="left_open">
-      <i title="展开左侧栏" class="iconfont">&#xf0025;</i>
+      <i title="展开左侧栏" class="iconfont">&#xf0185;</i>
     </div>
     <ul class="layui-nav left fast-add" lay-filter="">
       <li class="layui-nav-item" style="list-style: none">
@@ -58,23 +58,53 @@
   <div class="left-nav">
     <div id="side-nav">
       <ul id="nav">
+
         <li>
           <a href="javascript:;">
-            <i class="iconfont">&#xf0161;</i>
-            <!-- cite 倾斜 -->
-            <span>回复用户消息</span>
+            <i class="iconfont">&#xf015e;</i>
+            <span>公众号设置</span>
             <i class="iconfont nav_right">&#xf0170;</i>
           </a>
+
           <ul class="sub-menu">
-            <li><a href="{{url('/admin/textmessage')}}" target="myFrameName"><i class="iconfont">&#xf0042;</i><span>文本消息</span></a></li>
-            <li><a href="{{url('/admin/mixedmessage?image')}}" target="myFrameName"><i class="iconfont">&#xf0044;</i><span>图片消息</span></a></li>
-            <li><a href="{{url('/admin/mixedmessage?voice')}}" target="myFrameName"><i class="iconfont">&#xf0147;</i><span>语音消息</span></a></li>
-            <li><a href="{{url('/admin/mixedmessage?video')}}" target="myFrameName"><i class="iconfont">&#xf0162;</i><span>视频消息</span></a></li>
-            <li><a href="{{url('/admin/mixedmessage?music')}}" target="myFrameName"><i class="iconfont">&#xf0064;</i><span>音乐消息</span></a></li>
-            <li><a href="{{url('/admin/newsmessage')}}" target="myFrameName"><i class="iconfont">&#xf0198;</i><span>图文消息</span></a></li>
+            <li>
+              <a href="javascript:;">
+                <i class="iconfont">&#xf0161;</i>
+                <span>回复用户消息</span>
+                <i class="iconfont nav_right">&#xf0170;</i>
+              </a>
+              <ul class="sub-menu">
+                <li><a href="{{url('/admin/textmessage')}}" target="myFrameName"><i class="iconfont">&#xf0042;</i><span>文本消息</span></a></li>
+                <li><a href="{{url('/admin/mixedmessage?image')}}" target="myFrameName"><i class="iconfont">&#xf0044;</i><span>图片消息</span></a></li>
+                <li><a href="{{url('/admin/mixedmessage?voice')}}" target="myFrameName"><i class="iconfont">&#xf0147;</i><span>语音消息</span></a></li>
+                <li><a href="{{url('/admin/mixedmessage?video')}}" target="myFrameName"><i class="iconfont">&#xf0162;</i><span>视频消息</span></a></li>
+                <li><a href="{{url('/admin/mixedmessage?music')}}" target="myFrameName"><i class="iconfont">&#xf0064;</i><span>音乐消息</span></a></li>
+                <li><a href="{{url('/admin/newsmessage')}}" target="myFrameName"><i class="iconfont">&#xf0198;</i><span>图文消息</span></a></li>
+                <li><a href="{{url('/admin/settype')}}" target="myFrameName"><i class="iconfont">&#xf013e;</i><span>设置消息类型</span></a></li>
+              </ul>
+            </li>
           </ul>
+
+          <ul class="sub-menu">
+            <li>
+              <a href="javascript:;">
+                <i class="iconfont">&#xf0161;</i>
+                <span>自定义菜单</span>
+                <i class="iconfont nav_right">&#xf0170;</i>
+              </a>
+              <ul class="sub-menu">
+                <li><a href="{{url('/admin/textmessage')}}" target="myFrameName"><i class="iconfont">&#xf0042;</i><span>文本消息</span></a></li>
+              </ul>
+            </li>
+          </ul>
+
         </li>
+
       </ul>
+    </div>
+    <!-- 备案号 -->
+    <div class="footer">
+        <div class="copyright"><a href="http://www.miitbeian.gov.cn/" style="color:#fff">京ICP备19005720号</a></div>  
     </div>
   </div>
 
@@ -85,6 +115,7 @@
       </div>
     </div>
   </div>
+  
 </body>
 <script>
   $(function(){
@@ -92,6 +123,15 @@
       var _this = $(this);
       if(_this.val())
       $('#xz').prop('selected',true);
+    })
+
+    //左侧栏 缩进
+    $('.left_open i').click(function(){
+      if($(this).text() == '󰆅'){
+        $(this).text('󰆄');
+      }else{
+        $(this).text('󰆅');
+      }
     })
   })
 </script>

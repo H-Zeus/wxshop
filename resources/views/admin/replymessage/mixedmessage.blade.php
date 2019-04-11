@@ -17,6 +17,34 @@
         @csrf
         <fieldset>
           <div class="mdn-group">
+            @if($messageType == 'video' || $messageType == 'music')
+            <div class="mdn-group">
+              <div class="col col-6">
+                <div class="field-group">
+                  <input type="text" class="mdn-input" name="m_title" placeholder="请输入标题">
+                  <label class="mdn-label">
+                    <font style="vertical-align: inherit;">
+                      <font style="vertical-align: inherit;">标题</font>
+                    </font>
+                  </label>
+                  <span class="mdn-bar"></span>
+                </div>
+              </div>
+            </div>
+            <div class="mdn-group">
+              <div class="col col-6">
+                <div class="field-group">
+                  <input type="text" class="mdn-input" name="m_content" placeholder="请输入描述">
+                  <label class="mdn-label">
+                    <font style="vertical-align: inherit;">
+                      <font style="vertical-align: inherit;">描述</font>
+                    </font>
+                  </label>
+                  <span class="mdn-bar"></span>
+                </div>
+              </div>
+            </div>
+            @endif
             <label class="field-group mdn-upload">
               <input type="hidden" name="messageType" value="{{$messageType}}">
               <input type="file" class="mdn-file" name="file" id="file"

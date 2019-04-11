@@ -8,6 +8,7 @@ use App\Model\Wechat;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
 use App\Model\Material;
+use function GuzzleHttp\json_encode;
 
 class WechatController extends Controller
 {
@@ -49,15 +50,82 @@ class WechatController extends Controller
         if($postObj->MsgType == 'event'){
             //判断是一个关注事件
             if($postObj->Event == 'subscribe'){
-                $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
-                $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+                $type = config('messagetype.subscribe');
+                $resultStr = Wechat::ReplyMessage($type,$fromUserName,$toUserName);
                 echo $resultStr;exit;
             }
         }
         //关键词回复消息
         if($keywords == '你好'){
+
+            //测试
+            // $resultStr = Wechat::ReplyMessage('music',$fromUserName,$toUserName);
+            // echo $resultStr;exit;
             $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
+        }else if(strpos($keywords,'商品：') === 0){ //查询商品  返回图文信息
+            /**************
+             * 单图文消息
+             *************/
+            // $Htpl = "<xml>
+            //             <ToUserName><![CDATA[%s]]></ToUserName>
+            //             <FromUserName><![CDATA[%s]]></FromUserName>
+            //             <CreateTime><![CDATA[%s]]></CreateTime>
+            //             <MsgType><![CDATA[%s]]></MsgType>
+            //             <ArticleCount>1</ArticleCount>
+            //             <Articles>
+            //                 <item>
+            //                     <Title><![CDATA[%s]]></Title>
+            //                     <Description><![CDATA[%s]]></Description>
+            //                     <PicUrl><![CDATA[%s]]></PicUrl>
+            //                     <Url><![CDATA[%s]]></Url>
+            //                 </item>
+            //             </Articles>
+            //         </xml>";
+            // $type = 'news';
+            // $keywords = explode('：',$keywords)['1'];
+            // $array = DB::table('shop_goods')->where('goods_name','like',"%$keywords%")->orderBy('create_time','desc')->first();
+            // $Title = $array->goods_name;
+            // $Description = '价格：'.$array->self_price.'库存：'.$array->goods_num;
+            // $PicUrl = '/uploads/goodsimg/'.$array->goods_img;
+            // $Url = "http://hantian.shop/shopcontent/".$array->goods_id;
+
+            // $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$Title,$Description,$PicUrl,$Url);
+
+            /*************
+             * 多图文消息
+             *************/
+            $keywords = explode('：',$keywords)['1'];
+            $array = DB::table('shop_goods')->where('goods_name','like',"%$keywords%")->get();
+            static $info;
+            foreach($array as $v){
+                $info[] = [
+                    'Title' => $v->goods_name,
+                    'Description' => '价格：'.$v->self_price.' 库存：'.$v->goods_num,
+                    'PicUrl' => 'http://hantian.shop/uploads/goodsimg/'.$v->goods_img,
+                    'Url' => "http://hantian.shop/shopcontent/".$v->goods_id
+                ];
+            }
+            $Htpl = "<xml>
+                            <ToUserName><![CDATA[%s]]></ToUserName>
+                            <FromUserName><![CDATA[%s]]></FromUserName>
+                            <CreateTime>%s</CreateTime>
+                            <MsgType><![CDATA[%s]]></MsgType>
+                            <ArticleCount>" . count($array) . "</ArticleCount>
+                            <Articles>";
+            foreach($info as $v){
+                $Htpl .= "<item>
+                                <Title><![CDATA[" . $v['Title'] . "]]></Title>
+                                <Description><![CDATA[" . $v['Description'] . "]]></Description>
+                                <PicUrl><![CDATA[" . $v['PicUrl'] . "]]></PicUrl>
+                                <Url><![CDATA[" . $v['Url'] . "]]></Url>
+                              </item>";
+            }
+            $Htpl .= "</Articles></xml>";
+            $type = 'news';
+            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type);
+
             echo $resultStr;exit;
         }else if($keywords == '图片'){
             $tpl = "<xml>
@@ -73,7 +141,7 @@ class WechatController extends Controller
             $media_id = "BVxSi3v0_kRLEEHU3Xws7SOCQ5CqAdVy1QajgMPSnUCQ_wLOWvPf5k1WjUSw0id4";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$media_id);
             echo $resultStr;exit;
-        }else if($keywords == '小屋'){
+        }else if($keywords == '小屋'){ //用于 测试 图文信息
             $Htpl = "<xml>
                         <ToUserName><![CDATA[%s]]></ToUserName>
                         <FromUserName><![CDATA[%s]]></FromUserName>
@@ -89,7 +157,7 @@ class WechatController extends Controller
                             </item>
                         </Articles>
                     </xml>";
-            $array = DB::table('material')->orderBy('create_time','desc')->first();
+            $array = DB::table('material')->where('type','news')->orderBy('create_time','desc')->first();
             $MsgType = 'news';            
             $Title = $array->m_title;
             $Description = $array->m_content;
@@ -181,12 +249,176 @@ class WechatController extends Controller
      */
     public function test()
     {
-        $grant_type	= env('WX_GRANT_TYPE');
-        $appid	= env('WX_APPID');
-        $secret	= env('WX_APPSECRET');
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=$grant_type&appid=$appid&secret=$secret";
-        $token = json_decode(file_get_contents($url),true)['access_token'];
-        echo $token;exit;
+        // $token = Wechat::GetAccessToken();
+        // echo $token;exit;
+        $data = json_encode(
+            [
+                'button' => [
+                    [
+                        'name' => '扫码',
+                        'sub_button' => [
+                            [
+                                'type' => 'scancode_waitmsg',
+                                'name' => '扫码带提示',
+                                'key' => 'rselfmenu_0_0',
+                                'sub_button' => []
+                            ],
+                            [
+                                'type' => 'scancode_push',
+                                'name' => '扫码推事件',
+                                'key' => 'rselfmenu_0_1',
+                                'sub_button' => []
+                            ]
+                        ]
+                    ],
+                    [
+                        'name' => '发图',
+                        'sub_button' => [
+                            [
+                                'type' => 'pic_sysphoto',
+                                'name' => '系统拍照发图',
+                                'key' => 'rselfmenu_1_0',
+                                'sub_button' => []
+                            ],
+                            [
+                                'type' => 'pic_photo_or_album',
+                                'name' => '拍照或者相册发图',
+                                'key' => 'rselfmenu_1_1',
+                                'sub_button' => []
+                            ],
+                            [
+                                'type' => 'pic_weixin',
+                                'name' => '微信相册发图',
+                                'key' => 'rselfmenu_1_2',
+                                'sub_button' => []
+                            ]
+                        ]
+                    ],
+                    [
+                        'name' => '发送位置',
+                        'type' => 'location_select',
+                        'key' => 'rselfmenu_2_0'
+                    ],
+                    [
+                        'type' => 'media_id',
+                        'name' => '图片',
+                        'media_id' => 'MEDIA_ID1'
+                    ],
+                    [
+                        'type' => 'view_limited',
+                        'name' => '图文消息', 'media_id' => 'MEDIA_ID2'
+                    ]
+                ]
+            ],
+            JSON_UNESCAPED_UNICODE
+        );
+/*
+{
+    "button":[
+        {
+            "name":"扫码",
+            "sub_button":[
+                {
+                    "type":"scancode_waitmsg",
+                    "name":"扫码带提示",
+                    "key":"rselfmenu_0_0",
+                    "sub_button":[]
+                }
+            ]
+        },
+        {
+            "name":"发图",
+            "sub_button":[
+                {
+                    "type":"pic_sysphoto",
+                    "name":"系统拍照发图",
+                    "key":"rselfmenu_1_0",
+                    "sub_button":[]
+                },
+                {
+                    "type":"pic_photo_or_album",
+                    "name":"拍照或者相册发图",
+                    "key":"rselfmenu_1_1",
+                    "sub_button":[]
+                },
+                {
+                    "type":"pic_weixin",
+                    "name":"微信相册发图",
+                    "key":"rselfmenu_1_2",
+                    "sub_button":[]
+                }
+            ]
+        },
+        {
+            "name":"发送位置",
+            "type":"location_select",
+            "key":"rselfmenu_2_0"
+        },
+        {
+            "type":"media_id",
+            "name":"图片",
+            "media_id":"MEDIA_ID1"
+        },
+        {
+            "type":"view_limited",
+            "name":"图文消息",
+            "media_id":"MEDIA_ID2"
+        }
+    ]
+}
+*/
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        print_r($data);
+        exit;
+        // Redis::flushall();
+        // $token = Wechat::GetAccessToken();
+        // echo $token;exit;
+        $key = '商品：联想';
+        if(strpos($key,'商品：') == 0){
+            $key = explode('：',$key)['1'];
+        }
+        $array = DB::table('shop_goods')->where('goods_name','like',"%$key%")->get();
+        static $info;
+        foreach($array as $v){
+            $info[] = [
+                'Title' => $v->goods_name,
+                'Description' => $v->goods_name,
+                'PicUrl' => '/uploads/goodsimg/'.$v->goods_img,
+                'Url' => "http://hantian.shop/shopcontent/".$v->goods_id
+            ];
+        }
+        $template = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <ArticleCount>" . count($array) . "</ArticleCount>
+                        <Articles>";
+        foreach($info as $v){
+            $template .= "<item>
+                            <Title><![CDATA[" . $v['Title'] . "]]></Title>
+                            <Description><![CDATA[" . $v['Description'] . "]]></Description>
+                            <PicUrl><![CDATA[" . $v['PicUrl'] . "]]></PicUrl>
+                            <Url><![CDATA[" . $v['Url'] . "]]></Url>
+                          </item>";
+        }
+        $template .= "</Articles></xml>";
+        dd($template);
+        dd(count($array));
     }  
 }

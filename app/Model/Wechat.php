@@ -4,7 +4,7 @@ namespace App\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Redis;
 use function GuzzleHttp\json_decode;
-
+use Illuminate\Support\Facades\DB;
 
 class Wechat extends Model
 {
@@ -50,8 +50,9 @@ class Wechat extends Model
         }else{
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=$grant_type&appid=$appid&secret=$secret";
             $token = json_decode(file_get_contents($url),true)['access_token'];
-            Redis::setex('access_token',7140,$token);
+            Redis::setex('access_token',6000,$token);
         }
+
         return $token;
     }
 
@@ -63,10 +64,111 @@ class Wechat extends Model
         $arr = explode('/',$str)[0];
         $allow_type = [
             'image' => 'image',
-            'audio' => 'voice',
-            'application' => 'video'
+            'audio' => 'music',
+            'application' => 'voice',
+            'video' => 'video'
         ];
 
         return $allow_type[$arr];
+    }
+
+    /**
+     * @content 回复消息
+     * @param string $type 信息类型
+     * @param $fromUserName 接收方帐号
+     * @param $toUserName 发送方帐号
+     */
+    public static function ReplyMessage($type,$fromUserName,$toUserName)
+    {
+        $time = time();
+        $array = DB::table('material')->where('type',$type)->orderBy('id','desc')->first();
+        $Title = $array->m_title;
+        $Description = $array->m_content;
+        $PicUrl = 'http://hantian.shop'.$array->m_path;
+        $Url = $array->m_url;
+        $media_id = $array->media_id;
+        if($type == 'text'){
+            $Htpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Content><![CDATA[%s]]></Content>
+                    </xml>";
+            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$Description);
+        }else if($type == 'image'){
+            $Htpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Image>
+                            <MediaId><![CDATA[%s]]></MediaId>
+                        </Image>
+                    </xml>";
+                $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$media_id);
+        }else if($type == 'voice'){
+            $Htpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Voice>
+                            <MediaId><![CDATA[%s]]></MediaId>
+                        </Voice>
+                    </xml>";
+                $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$media_id);
+        }else if($type == 'video'){
+            $Htpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Video>
+                            <MediaId><![CDATA[%s]]></MediaId>
+                            <Title><![CDATA[%s]]></Title>
+                            <Description><![CDATA[%s]]></Description>
+                        </Video>
+                    </xml>";
+            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$media_id,$Title,$Description);
+        }else if($type == 'music'){
+            $Htpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Music>
+                            <Title><![CDATA[%s]]></Title>
+                            <Description><![CDATA[%s]]></Description>
+                            <MusicUrl><![CDATA[%s]]></MusicUrl>
+                            <HQMusicUrl><![CDATA[%s]]></HQMusicUrl>
+                            <ThumbMediaId><![CDATA[%s]]></ThumbMediaId>
+                        </Music>
+                    </xml>";
+            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$Title,$Description,$PicUrl,$PicUrl,$media_id);
+        }else if($type == 'news'){
+            $Htpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime><![CDATA[%s]]></CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <ArticleCount>1</ArticleCount>
+                        <Articles>
+                            <item>
+                                <Title><![CDATA[%s]]></Title>
+                                <Description><![CDATA[%s]]></Description>
+                                <PicUrl><![CDATA[%s]]></PicUrl>
+                                <Url><![CDATA[%s]]></Url>
+                            </item>
+                        </Articles>
+                    </xml>";
+            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type,$Title,$Description,$PicUrl,$Url);
+        }
+        echo $resultStr;
+
+
+        
+        // $token = Wechat::GetAccessToken(); //获取access_token
+        // $PicUrl = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=$token&media_id=$media_id";
     }
 }
