@@ -129,4 +129,5 @@ class WechatAdminController extends Controller
             return view('admin.replymessage.settype',['type'=>$type]);
         }
     }
+
 }

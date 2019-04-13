@@ -249,8 +249,8 @@ class WechatController extends Controller
      */
     public function test()
     {
-        // $token = Wechat::GetAccessToken();
-        // echo $token;exit;
+        $token = Wechat::GetAccessToken();
+        echo $token;exit;
         $data = json_encode(
             [
                 'button' => [

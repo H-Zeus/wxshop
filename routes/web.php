@@ -139,4 +139,11 @@ Route::group(['prefix'=>'admin','namespace'=>'Admin'],function(){
 
   //上传媒体文件
   Route::any('/upmessage','WechatAdminController@upmessage');
+
+  //自定义菜单
+  Route::any('/customize','MenuController@index');
+  //编辑菜单
+  Route::any('/editmenu','MenuController@editMenu');
+  //循环入库
+  Route::any('/add','MenuController@cde');
 });

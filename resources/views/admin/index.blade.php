@@ -34,7 +34,7 @@
 </style>
 <body>
   <div class="container">
-    <div class="logo"><a href="index.html">L-admin</a></div>
+    <div class="logo"><a href="javascript:void(0);">L-admin</a></div>
     <div class="left_open">
       <i title="展开左侧栏" class="iconfont">&#xf0185;</i>
     </div>
@@ -84,18 +84,9 @@
               </ul>
             </li>
           </ul>
-
+          
           <ul class="sub-menu">
-            <li>
-              <a href="javascript:;">
-                <i class="iconfont">&#xf0161;</i>
-                <span>自定义菜单</span>
-                <i class="iconfont nav_right">&#xf0170;</i>
-              </a>
-              <ul class="sub-menu">
-                <li><a href="{{url('/admin/textmessage')}}" target="myFrameName"><i class="iconfont">&#xf0042;</i><span>文本消息</span></a></li>
-              </ul>
-            </li>
+              <li><a href="{{url('/admin/customize')}}" target="myFrameName"><i class="iconfont">&#xf01ff;</i><span>&ensp;&nbsp;自定义菜单</span></a></li>
           </ul>
 
         </li>
