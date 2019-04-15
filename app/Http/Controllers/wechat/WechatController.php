@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
 use App\Model\Material;
 use function GuzzleHttp\json_encode;
+use function GuzzleHttp\json_decode;
 
 class WechatController extends Controller
 {
@@ -50,14 +51,21 @@ class WechatController extends Controller
         if($postObj->MsgType == 'event'){
             //判断是一个关注事件
             if($postObj->Event == 'subscribe'){
+                $token = Wechat::GetAccessToken();
+                $url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=$token&openid=$fromUserName&lang=zh_CN";
+                $info = json_decode(file_get_contents($url),true);
+                $info['tagid_list'] = implode('、',$info['tagid_list']);
+                $info['nickname'] = json_encode($info['nickname']);
+                DB::table('wx_userinfo')->insert($info);
+                // $content = '欢迎关注！';
                 $type = config('messagetype.subscribe');
                 $resultStr = Wechat::ReplyMessage($type,$fromUserName,$toUserName);
+                // $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
                 echo $resultStr;exit;
             }
         }
         //关键词回复消息
         if($keywords == '你好'){
-
             //测试
             // $resultStr = Wechat::ReplyMessage('music',$fromUserName,$toUserName);
             // echo $resultStr;exit;
@@ -198,6 +206,35 @@ class WechatController extends Controller
             $content = $msg;
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
+        }else if($keywords == '创建菜单'){
+            $token = Wechat::GetAccessToken();
+            $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=$token";
+            $data = '{
+                "button":[
+                {    
+                    "type":"click",
+                    "name":"每日一点",
+                    "key":"1111"
+                },
+                {
+                    "name":"菜单",
+                    "sub_button":[
+                    {    
+                        "type":"view",
+                        "name":"百度",
+                        "url":"http://www.baidu.com/"
+                    },
+                    {
+                        "type":"click",
+                        "name":"赞一下我们",
+                        "key":"V1001_GOOD"
+                    }]
+                }]
+            }';
+            Wechat::HttpPost($url,$data);
+            $content = "创建成功";
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
         }else{
             //调用图灵机器人回复 关键词
             $data = [
@@ -249,176 +286,8 @@ class WechatController extends Controller
      */
     public function test()
     {
+        Redis::flushall();
         $token = Wechat::GetAccessToken();
         echo $token;exit;
-        $data = json_encode(
-            [
-                'button' => [
-                    [
-                        'name' => '扫码',
-                        'sub_button' => [
-                            [
-                                'type' => 'scancode_waitmsg',
-                                'name' => '扫码带提示',
-                                'key' => 'rselfmenu_0_0',
-                                'sub_button' => []
-                            ],
-                            [
-                                'type' => 'scancode_push',
-                                'name' => '扫码推事件',
-                                'key' => 'rselfmenu_0_1',
-                                'sub_button' => []
-                            ]
-                        ]
-                    ],
-                    [
-                        'name' => '发图',
-                        'sub_button' => [
-                            [
-                                'type' => 'pic_sysphoto',
-                                'name' => '系统拍照发图',
-                                'key' => 'rselfmenu_1_0',
-                                'sub_button' => []
-                            ],
-                            [
-                                'type' => 'pic_photo_or_album',
-                                'name' => '拍照或者相册发图',
-                                'key' => 'rselfmenu_1_1',
-                                'sub_button' => []
-                            ],
-                            [
-                                'type' => 'pic_weixin',
-                                'name' => '微信相册发图',
-                                'key' => 'rselfmenu_1_2',
-                                'sub_button' => []
-                            ]
-                        ]
-                    ],
-                    [
-                        'name' => '发送位置',
-                        'type' => 'location_select',
-                        'key' => 'rselfmenu_2_0'
-                    ],
-                    [
-                        'type' => 'media_id',
-                        'name' => '图片',
-                        'media_id' => 'MEDIA_ID1'
-                    ],
-                    [
-                        'type' => 'view_limited',
-                        'name' => '图文消息', 'media_id' => 'MEDIA_ID2'
-                    ]
-                ]
-            ],
-            JSON_UNESCAPED_UNICODE
-        );
-/*
-{
-    "button":[
-        {
-            "name":"扫码",
-            "sub_button":[
-                {
-                    "type":"scancode_waitmsg",
-                    "name":"扫码带提示",
-                    "key":"rselfmenu_0_0",
-                    "sub_button":[]
-                }
-            ]
-        },
-        {
-            "name":"发图",
-            "sub_button":[
-                {
-                    "type":"pic_sysphoto",
-                    "name":"系统拍照发图",
-                    "key":"rselfmenu_1_0",
-                    "sub_button":[]
-                },
-                {
-                    "type":"pic_photo_or_album",
-                    "name":"拍照或者相册发图",
-                    "key":"rselfmenu_1_1",
-                    "sub_button":[]
-                },
-                {
-                    "type":"pic_weixin",
-                    "name":"微信相册发图",
-                    "key":"rselfmenu_1_2",
-                    "sub_button":[]
-                }
-            ]
-        },
-        {
-            "name":"发送位置",
-            "type":"location_select",
-            "key":"rselfmenu_2_0"
-        },
-        {
-            "type":"media_id",
-            "name":"图片",
-            "media_id":"MEDIA_ID1"
-        },
-        {
-            "type":"view_limited",
-            "name":"图文消息",
-            "media_id":"MEDIA_ID2"
-        }
-    ]
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        print_r($data);
-        exit;
-        // Redis::flushall();
-        // $token = Wechat::GetAccessToken();
-        // echo $token;exit;
-        $key = '商品：联想';
-        if(strpos($key,'商品：') == 0){
-            $key = explode('：',$key)['1'];
-        }
-        $array = DB::table('shop_goods')->where('goods_name','like',"%$key%")->get();
-        static $info;
-        foreach($array as $v){
-            $info[] = [
-                'Title' => $v->goods_name,
-                'Description' => $v->goods_name,
-                'PicUrl' => '/uploads/goodsimg/'.$v->goods_img,
-                'Url' => "http://hantian.shop/shopcontent/".$v->goods_id
-            ];
-        }
-        $template = "<xml>
-                        <ToUserName><![CDATA[%s]]></ToUserName>
-                        <FromUserName><![CDATA[%s]]></FromUserName>
-                        <CreateTime>%s</CreateTime>
-                        <MsgType><![CDATA[%s]]></MsgType>
-                        <ArticleCount>" . count($array) . "</ArticleCount>
-                        <Articles>";
-        foreach($info as $v){
-            $template .= "<item>
-                            <Title><![CDATA[" . $v['Title'] . "]]></Title>
-                            <Description><![CDATA[" . $v['Description'] . "]]></Description>
-                            <PicUrl><![CDATA[" . $v['PicUrl'] . "]]></PicUrl>
-                            <Url><![CDATA[" . $v['Url'] . "]]></Url>
-                          </item>";
-        }
-        $template .= "</Articles></xml>";
-        dd($template);
-        dd(count($array));
     }  
 }

@@ -91,40 +91,7 @@
 
 <!-- 自定义菜单排序 -->
 <script>
-  var obj = {
-    "menu": {
-      "button": [{
-        "type": "click",
-        "name": "今日歌曲",
-        "key": "你好",
-        "sub_button": []
-      }, {
-        "name": "菜单2",
-        "sub_button": [{
-          "type": "view",
-          "name": "搜索",
-          "url": "http:\/\/www.soso.com\/",
-          "sub_button": []
-        }, {
-          "type": "miniprogram",
-          "name": "test",
-          "url": "http:\/\/mp.weixin.qq.com",
-          "sub_button": [],
-          "appid": "wx286b93c14bbf93aa",
-          "pagepath": "pages\/lunar\/index"
-        }]
-      }, {
-        "name": "菜单3",
-        "sub_button": [{
-          "type": "view",
-          "name": "百度",
-          "url": "http:\/\/www.baidu.com\/",
-          "sub_button": []
-        }]
-      }]
-    }
-  };
-  // var obj = {!!$data!!}; //由控制器传过来
+  var obj = {!!$data!!}; //由控制器传过来
   //显示自定义按钮组
   var button = obj.menu.button; //一级菜单[]
   var menu = '<div class="custom-menu-view__menu"><div class="text-ellipsis"></div></div>'; //显示小键盘
@@ -136,14 +103,14 @@
       appendMenu(button.length);
       showBtn();
       $('.custom-menu-view__menu').css({
-        width: '50%',
+        width: '100%',
       });
     }
     if (button.length == 2) {
       appendMenu(button.length);
       showBtn();
       $('.custom-menu-view__menu').css({
-        width: '33.3333%',
+        width: '50%',
       });
     }
     if (button.length == 3) {

@@ -119,7 +119,7 @@ $(function(){
     //预处理
     $('tr').each(function(){
       var _this = $(this);
-      if(_this.find('td').next().last().find('.del').attr('pid') == 0 && _this.next().find('td').next().last().find('.del').attr('pid') != 0){
+      if(_this.find('td').next().last().find('.del').attr('pid') == 0 && (_this.next().find('td').next().last().find('.del').attr('pid') != 0 && _this.next().find('td').next().last().find('.del').attr('pid') != null)){
        _this.find('td').first().next().remove();
        _this.find('td').first().next().remove();
        _this.find('td').first().next().html('');
@@ -141,6 +141,21 @@ $(function(){
           layer.closeAll();
         }});
       }else{
+        _this.parents('tr').prev().find('td').first().next().attr('colspan',null);
+        _this.parents('tr').prev().find('td').first().next().html(
+                '<select name="city" class="stype">'+
+                    '<option value=""></option>'+
+                  '@foreach($type as $value)'+
+                    '<option value="{{$value->type}}">{{$value->type}}</option>'+
+                  '@endforeach'+
+                '</select>'
+        )
+        _this.parents('tr').prev().find('td').first().next().after('<td>'+
+              '<input type="text" placeholder="请输入Key">'+
+            '</td>');
+        _this.parents('tr').prev().find('td').first().next().next().after('<td>'+
+              '<input type="text" placeholder="请输入Url">'+
+            '</td>');
         _this.parents('tr').remove();
       }
     });
@@ -152,9 +167,11 @@ $(function(){
       var m_id = $(this).attr('m_id');
       var status = _this.prop('checked');
       if(status == true){
+        $('div[pid='+m_id+']').find('input').prop('checked',true);
         $('div[pid='+m_id+']').find('input').next('div').addClass('layui-form-onswitch');
         $('div[pid='+m_id+']').find('input').next('div').find('em').text('ON');
       }else{
+        $('div[pid='+m_id+']').find('input').prop('checked',false);
         $('div[pid='+m_id+']').find('input').next('div').removeClass('layui-form-onswitch');
         $('div[pid='+m_id+']').find('input').next('div').find('em').text('OFF');
       }
@@ -177,6 +194,7 @@ $(function(){
           _this.parent().prev().prev().html('');
           _this.parent().prev().prev().attr('colspan',3);
         }
+        // console.log(_this.parents('tr'));
         // return;
         _this.parents('tr').after(
           '<tr>'+
@@ -255,28 +273,62 @@ $(function(){
     })
 
     //保存 提交到控制器
-    var name ='';
-    var type ='';
-    var key ='';
-    var url ='';
-    var status ='';
     $('#btn').click(function(){
       //获取数据
+      var m_id = '';
+      var pid = '';
+      var name ='';
+      var type ='';
+      var key ='';
+      var url ='';
+      var status ='';
+      var twostatus = 1;
+      var number = 0;
+      var chekc = 0;
+      var k = 0;
       $('tr').each(function(){
+        //二级菜单类型必选
+        if($(this).find('td').last().find('.del').attr('pid') != 0){
+          if($(this).find('td').first().next().find('select').val() == ''){
+            layer.msg('二级菜单类型必选');
+            twostatus = 2;
+          }
+        }
+        //重新定义pid
+        m_id += number++ +'||';
+        if(number == 1){
+          pid += 0+'||';
+        }else if($(this).find('td').first().next().find('select').val() == null || $(this).find('td').first().next().find('select').val() == ''){
+          pid += 0+'||';
+          k = 0;
+        }else{
+          if(k == 0){
+            check = number-2;
+          }
+          k = 1;
+          pid += check+'||';
+        }
         name += $(this).find('td').first().find('input').val()+'||'; //菜单名称
         type += $(this).find('td').first().next().find('select').val()+'||'; //类型
         key += $(this).find('td').first().next().next().find('input').val()+'||'; //Key
         url += $(this).find('td').first().next().next().next().find('input').val()+'||'; //Url
         status += $(this).find('td').last().prev().find('input').prop('checked')+'||'; //Status
       })
-      $.ajax({
-        url:'editmenu',
-        data:{name:name,type:type,key:key,url:url,status:status,_token:'{{csrf_token()}}'},
-        type:'post'
-      }).done(function(msg){
-        layer.msg(msg);
-      })
+      if(twostatus == 1){
+        $.ajax({
+          url:'editmenu',
+          data:{m_id:m_id,pid:pid,name:name,type:type,key:key,url:url,status:status,_token:'{{csrf_token()}}'},
+          type:'post'
+        }).done(function(msg){
+          layer.msg(msg,{time:1200},function(){
+            if(msg == '编辑成功'){
+              history.go();
+            }
+          });
+        })
+      }
     })
+
   })
 })
 </script>
