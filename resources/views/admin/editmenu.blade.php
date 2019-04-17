@@ -19,6 +19,9 @@
   .layui-table th{
     text-align:center;
   }
+  .hbox{
+    height: 874px;
+  }
   input{
     border:none;
     height:30px;
@@ -35,7 +38,7 @@
 </style>
 <div class="container">
 <div class="custom-menu-edit-con" style="margin-right:3%;">
-  <div class="hbox" style="border:1px solid #dee5e7;height:608px;position:absolute;">
+  <div class="hbox" style="border:1px solid #dee5e7;position:absolute;">
     <table class="layui-table" style="margin:0">
       <colgroup>
         <col>
@@ -322,7 +325,7 @@ $(function(){
         }).done(function(msg){
           layer.msg(msg,{time:1200},function(){
             if(msg == '编辑成功'){
-              history.go();
+              location.href="/admin/customize";
             }
           });
         })

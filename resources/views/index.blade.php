@@ -12,19 +12,6 @@
 	</div>
 	<!--首页头部 end-->
 
-	<!-- 关注微信 -->
-	<div id="div_subscribe" class="app-icon-wrapper" style="display: none;">
-		<div class="app-icon">
-			<a href="javascript:;" class="close-icon"><i class="set-icon"></i></a>
-			<a href="javascript:;" class="info-icon">
-				<i class="set-icon"></i>
-				<div class="info">
-					<p>点击关注666潮人购官方微信^_^</p>
-				</div>
-			</a>
-		</div>
-	</div>
-
 	<!-- 焦点图 -->
 	<div class="hotimg-wrapper">
 		<div class="hotimg-top"></div>
@@ -77,26 +64,19 @@
 		</ul>
 	</div>
 	<!--导航-->
-	<!-- <div class="success-tip">
+	<div class="success-tip">
 		<div class="left-icon"></div>
 		<ul class="right-con">
-			<li>
-				<span style="color: #4E555E;">
-					<a href="./index.php?i=107&amp;c=entry&amp;id=10&amp;do=notice&amp;m=weliam_indiana" style="color: #4E555E;">恭喜<span class="username">H</span>获得了<span>iphonex 黑色 256G 闪耀你的眼</span></a>
-				</span>
-			</li>
-			<li>
-				<span style="color: #4E555E;">
-					<a href="./index.php?i=107&amp;c=entry&amp;id=10&amp;do=notice&amp;m=weliam_indiana" style="color: #4E555E;">恭喜<span class="username">A</span>获得了<span>iphoneSE 白色 128G 闪耀你的眼</span></a>
-				</span>
-			</li>
-			<li>
+			<span>
+				<a id="Wechat" href="javascript:void(0);" style="color: #f22f2f;margin: 0 4px;">微信公众号上线了！！点我去关注！</a>
+			</span>
+			<!-- <li>
 				<span style="color: #4E555E;">
 					<a href="./index.php?i=107&amp;c=entry&amp;id=10&amp;do=notice&amp;m=weliam_indiana" style="color: #4E555E;">恭喜<span class="username">N</span>获得了<span>iphone8P 黑色 128G 闪耀你的眼</span></a>
 				</span>
-			</li>
+			</li> -->
 		</ul>
-	</div> -->
+	</div>
 
 	<!-- 商品列表 -->
 	<div class="line guess">
@@ -213,26 +193,40 @@
 	});
 </script>
 <script>
-    $(function(){
-        //加入购物车
-        $(document).on('click','.cartadd',function(){
-            var _this = $(this);
-            var goods_id = _this.attr('goods_id');
-            var _token = $('#_token').val();
-            $.ajax({
-                url:'/cartadd',
-                type:'post',
-                data:{goods_id:goods_id,_token:_token}
-            }).done(function(res){
-								if(res != '' && res != '库存不足'){
-                    $('body').html(res);
-                }
-                if(res == '库存不足'){
-                    layer.msg('库存不足');
-                    $('#btnCart').find('i').empty();
-                }
-            })
-        })
-    })
+	$(function(){
+		layui.use(['layer'],function(){
+			//加入购物车
+			$(document).on('click','.cartadd',function(){
+				var _this = $(this);
+				var goods_id = _this.attr('goods_id');
+				var _token = $('#_token').val();
+				$.ajax({
+						url:'/cartadd',
+						type:'post',
+						data:{goods_id:goods_id,_token:_token}
+				}).done(function(res){
+						if(res != '' && res != '库存不足'){
+							$('body').html(res);
+						}
+						if(res == '库存不足'){
+							layer.msg('库存不足');
+							$('#btnCart').find('i').empty();
+						}
+				});
+			});
+			
+			//弹出微信公众号二维码
+			$('#Wechat').click(function(){
+				layer.open({
+					type: 1, 
+					title: false,
+					resize: false,
+					closeBtn: 2,
+					area: '320px',
+					content: '<center><img src="/uploads/0.jpg" width="70%"></center>' //这里content是一个普通的String
+				});
+			})
+		});
+	});
 </script>
 @endsection

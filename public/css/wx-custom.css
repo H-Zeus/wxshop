@@ -10,7 +10,7 @@
 
 .custom-menu-edit-con {
     position: relative;
-    padding: 20px 50px 0 20px;
+    padding: 10px 10px 0 10px;
 }
 .hbox {
     display: table;
@@ -55,7 +55,7 @@
     width: 309px;
     height: 506px;
     position: relative;
-    margin: 50px auto;
+    margin: 50% auto;
 }
 .custom-menu-view {
     height: 100%;

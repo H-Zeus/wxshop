@@ -52,12 +52,15 @@ class WechatController extends Controller
             //判断是一个关注事件
             if($postObj->Event == 'subscribe'){
                 $token = Wechat::GetAccessToken();
+                //获取关注 用户信息
                 $url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=$token&openid=$fromUserName&lang=zh_CN";
                 $info = json_decode(file_get_contents($url),true);
                 $info['tagid_list'] = implode('、',$info['tagid_list']);
                 $info['nickname'] = json_encode($info['nickname']);
+                //将用户信息存入数据库
                 DB::table('wx_userinfo')->insert($info);
-                // $content = '欢迎关注！';
+                Redis::del('userListInfo');
+                $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务 <a href="http://www.hantian.shop/admin/bindlogin">点击绑定</a>';
                 $type = config('messagetype.subscribe');
                 $resultStr = Wechat::ReplyMessage($type,$fromUserName,$toUserName);
                 // $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
@@ -69,7 +72,15 @@ class WechatController extends Controller
             //测试
             // $resultStr = Wechat::ReplyMessage('music',$fromUserName,$toUserName);
             // echo $resultStr;exit;
-            $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
+            // $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
+            $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务 <a href="http://www.hantian.shop/admin/bindlogin">点击绑定</a>';
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
+        }else if($keywords == '登录'){
+            $appid = env('WX_APPID');
+            $redirectUri = urlencode("http://www.hantian.shop/admin/wxtplogin");
+            $wxTPLoginUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=$appid&redirect_uri=$redirectUri&response_type=code&scope=snsapi_userinfo&state=9517#wechat_redirect"; 
+            $content = $wxTPLoginUrl;
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
         }else if(strpos($keywords,'商品：') === 0){ //查询商品  返回图文信息

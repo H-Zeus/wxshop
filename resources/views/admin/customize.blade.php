@@ -72,7 +72,7 @@
                 @if($v->status == 1)
                 <input type="checkbox" disabled checked name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
                 @else
-                <input type="checkbox" name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
+                <input type="checkbox" disabled  name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
                 @endif
               </div>
             </div>

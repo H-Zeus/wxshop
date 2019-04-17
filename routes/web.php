@@ -144,6 +144,26 @@ Route::group(['prefix'=>'admin','namespace'=>'Admin'],function(){
   Route::any('/customize','MenuController@index');
   //编辑菜单
   Route::any('/editmenu','MenuController@editMenu');
+  //群发信息
+  Route::any('/groupsent','GroupController@groupSend');
+  //群发信息-上传文件
+  Route::any('/uploadfile','GroupController@uploadFile');
+  //用户管理-主页
+  Route::any('/usercontrol','UserController@index');
+  //标签管理
+  Route::any('/taglist','UserController@tagIndex');
+  //创建标签
+  Route::any('/tagadd','UserController@tagAdd');
+  //删除标签
+  Route::any('/tagdel','UserController@tagDel');
+  //修改用户标签
+  Route::any('/usertagupd','UserController@userTagUpd');
+
   //循环入库
   Route::any('/add','MenuController@cde');
+
+  //微信第三方登录
+  Route::any('/wxtplogin','UserController@wxTPLogin');
+  //绑定用户
+  Route::any('/bindlogin','UserController@bindLogin');
 });

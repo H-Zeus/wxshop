@@ -58,19 +58,13 @@
   <div class="left-nav">
     <div id="side-nav">
       <ul id="nav">
-
         <li>
-          <a href="javascript:;">
-            <i class="iconfont">&#xf015e;</i>
-            <span>公众号设置</span>
-            <i class="iconfont nav_right">&#xf0170;</i>
-          </a>
-
+          <a href="javascript:;"><i class="iconfont">&#xf015e;</i><span>功能</span><i class="iconfont nav_right">&#xf0170;</i></a>
           <ul class="sub-menu">
             <li>
               <a href="javascript:;">
                 <i class="iconfont">&#xf0161;</i>
-                <span>回复用户消息</span>
+                <span>自定义回复消息</span>
                 <i class="iconfont nav_right">&#xf0170;</i>
               </a>
               <ul class="sub-menu">
@@ -84,13 +78,24 @@
               </ul>
             </li>
           </ul>
-          
-          <ul class="sub-menu">
-              <li><a href="{{url('/admin/customize')}}" target="myFrameName"><i class="iconfont">&#xf01ff;</i><span>&ensp;&nbsp;自定义菜单</span></a></li>
+          <ul class="sub-menu sub-menus">
+              <li><a href="{{url('/admin/customize')}}" target="myFrameName"><i class="iconfont">&#xf01ff;</i><span>自定义菜单</span></a></li>
+              <li><a href="{{url('/admin/groupsent')}}" target="myFrameName"><i class="iconfont">&#xf0026;</i><span>群发消息</span></a></li>
           </ul>
-
+          <ul class="sub-menu">
+            <li>
+              <a href="javascript:;">
+                <i class="iconfont">&#xf012d;</i>
+                <span>用户管理</span>
+                <i class="iconfont nav_right">&#xf0170;</i>
+              </a>
+              <ul class="sub-menu">
+                <li><a href="{{url('/admin/usercontrol')}}" target="myFrameName"><i class="iconfont">&#xf0161;</i><span>用户列表</span></a></li>
+                <li><a href="{{url('/admin/taglist')}}" target="myFrameName"><i class="iconfont">&#xf0060;</i><span>标签管理</span></a></li>
+              </ul>
+            </li>
+          </ul>
         </li>
-
       </ul>
     </div>
     <!-- 备案号 -->
@@ -124,6 +129,8 @@
         $(this).text('󰆅');
       }
     })
+
+
   })
 </script>
 </html>

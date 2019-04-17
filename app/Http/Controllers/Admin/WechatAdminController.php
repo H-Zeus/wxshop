@@ -68,7 +68,6 @@ class WechatAdminController extends Controller
                 $newFileName = date('YmdHis').mt_rand(1111,9999).'.'.$ext; //新的文件名称
                 $path = $file->storeAs('',$newFileName,'uploads'); //上传,并返回文件名
                 $token = Wechat::GetAccessToken(); //获取access_token
-                // dd($token);
                 $type = Wechat::getType($str);
                 $imgpath = public_path().'/uploads/material/'.date('Ymd').'/'.$path; //拼接文件名
                 $data = ['media' =>new \CURLFile(realpath($imgpath),$str,$path)];

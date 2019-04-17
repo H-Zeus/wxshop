@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Redis;
 use function GuzzleHttp\json_decode;
 use Illuminate\Support\Facades\DB;
+use App\Common;
 
 class Wechat extends Model
 {
@@ -170,5 +171,62 @@ class Wechat extends Model
         
         // $token = Wechat::GetAccessToken(); //获取access_token
         // $PicUrl = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=$token&media_id=$media_id";
+    }
+
+    /**
+     * @content 获取关注列表
+     */
+    public static function GetOpenIdList()
+    {
+        $token = self::GetAccessToken();
+        $url = "https://api.weixin.qq.com/cgi-bin/user/get?access_token=$token";
+        $info = json_decode(file_get_contents($url),true);
+
+        return $info['data']['openid'];
+    }
+
+    /**
+     * @content 获取标签列表
+     */
+    public static function GetTagList()
+    {
+        if(Redis::exists('tagListInfo')){
+            $info = json_decode(Redis::get('tagListInfo'),true);
+        }else{
+            $tagListUrl = "https://api.weixin.qq.com/cgi-bin/tags/get?access_token=".Wechat::GetAccessToken();
+            $info = json_decode(file_get_contents($tagListUrl),true)['tags'];
+            Redis::set('tagListInfo',json_encode($info,JSON_UNESCAPED_UNICODE));
+        }
+        
+        return $info;
+    }
+
+    /** 发送短信 */
+    public static function sendsms(Request $request){
+        $user_tel = $request->user_tel;
+        if($user_tel == ''){
+            return '手机号不能为空';
+        }
+        //查询手机号是否唯一
+        $user_model = new User;
+        $check = $user_model->where(['user_tel'=>$user_tel])->first();
+        if(!empty($check)){
+            return '用户名已存在';
+        }
+        //随机生成验证码
+        $code = Common::createcode(4);
+        //发送短信
+        $res = Common::sendSms($user_tel,$code);
+        if($res){
+            $sendInfo = [
+                'sendTime' => time(),
+                'sendCode' => $code,
+                'sendTel' => $user_tel
+            ];
+            session(['sendInfo'=>$sendInfo]);
+            return '发送成功';
+        }else{
+            return '发送失败';
+        }
     }
 }
