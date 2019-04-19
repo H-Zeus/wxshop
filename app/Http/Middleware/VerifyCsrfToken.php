@@ -23,5 +23,8 @@ class VerifyCsrfToken extends Middleware
         '/wechat/check',
         '/wechat/test',
         '/admin/uploadfile',
+        '/admin/myorder',  //菜单-我的订单
+        '/admin/shopcar',  //菜单-我的购物车
+        '/admin/shopaddress', //菜单-收货地址
     ];
 }

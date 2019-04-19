@@ -8,6 +8,9 @@ use App\Model\Wechat;
 use function GuzzleHttp\json_encode;
 use Illuminate\Support\Facades\Redis;
 use function GuzzleHttp\json_decode;
+use Illuminate\Support\Facades\DB;
+use App\Common;
+use App\Model\Order;
 
 class UserController extends Controller
 {
@@ -135,12 +138,15 @@ class UserController extends Controller
         $openid = $data['openid'];
         //检验授权凭证（access_token）是否有效
         $checkTokenUrl = "https://api.weixin.qq.com/sns/auth?access_token=$access_token&openid=$openid";
+        
         $res = json_decode(file_get_contents($checkTokenUrl),true);
         if($res['errcode'] == 0){
             //拉取用户信息
             $userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?access_token=$access_token&openid=$openid&lang=zh_CN";
-            $userInfo = json_decode(file_get_contents($userInfoUrl),true);
-            dd($userInfo);
+            // $userInfo = json_decode(file_get_contents($userInfoUrl),true);
+            $openid = json_decode(file_get_contents($userInfoUrl),true)['openid'];
+
+            return view('admin.bindlogin',['openid'=>$openid]);
         }else{
             return '授权失败<br>错误代码：'.$res['errcode'].'错误信息：'.$res['errmsg'];
         }
@@ -151,6 +157,149 @@ class UserController extends Controller
      */
     public function bindLogin(Request $request)
     {
-        return view('admin.bindlogin');
+        $code = Redis::get('bindcode');
+        $binduser = Redis::get('binduser');
+        $user = $request->user;
+        $openid = $request->openid;
+        if($user !== $binduser){return '操作异常！';}
+        if($code === $request->code){
+            //绑定用户
+            $res1 = DB::table('shop_user')->where('user_email',$user)->update(['openid'=>$openid]);
+            $res2 = DB::table('shop_user')->where('user_tel',$user)->update(['openid'=>$openid]);
+            if($res1 || $res2){
+                return '绑定成功';
+            }else{
+                return '绑定失败';
+            }
+        }else{
+            return '验证码错误';
+        }
+    }
+
+    /**
+     * @content 发送验证码
+     */
+    public function sendCode(Request $request)
+    {
+        $user = $request->user;
+        Redis::set('binduser',$user);
+        if(empty($user)){return '账号不能为空！';}
+        //判断是邮箱还是手机号
+        $pattern = '/^([a-z0-9])(([-a-z0-9._])*([a-z0-9]))*\@([a-z0-9])*(\.([a-z0-9])([-a-z0-9_-])([a-z0-9])+)*$/i';
+        preg_match($pattern, $user, $matches);
+        $code = Common::createcode(4);
+        //模拟发送成功
+        // Redis::setex('bindcode',300,$code);
+        // dd(Redis::get('bindcode'));
+
+        if($matches){ // 邮箱 发送邮箱
+            $exists = DB::table('shop_user')->where('user_email',$user)->first();
+            if($exists == null){return '账号不存在';}
+            $res = Order::sendEmail($user,$code);
+        }else{ //手机号 发送短信
+            $exists = DB::table('shop_user')->where('user_tel',$user)->first();
+            if($exists == null){return '账号不存在';}
+            $res = Order::sendsms($user,$code);
+        }
+        if($res){
+            Redis::setex('bindcode',300,$code);
+            return '发送成功,验证码5分钟内有效';
+        }else{
+            return '发送失败';
+        }
+    }
+
+    /**
+     * @content 菜单-我的订单
+     */
+    public function myOrder(Request $request){
+        $code = $request->code;
+        $appid = env('WX_APPID');
+        $secret = env('WX_APPSECRET');
+        //通过code换取网页授权access_token
+        $tokenUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=$appid&secret=$secret&code=$code&grant_type=authorization_code";
+        $data = json_decode(file_get_contents($tokenUrl),true);
+        $access_token = $data['access_token'];
+        $openid = $data['openid'];
+        //检验授权凭证（access_token）是否有效
+        $checkTokenUrl = "https://api.weixin.qq.com/sns/auth?access_token=$access_token&openid=$openid";
+        
+        $res = json_decode(file_get_contents($checkTokenUrl),true);
+        if($res['errcode'] == 0){
+            //拉取用户信息
+            $userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?access_token=$access_token&openid=$openid&lang=zh_CN";
+            $openid = json_decode(file_get_contents($userInfoUrl),true)['openid'];
+            $userInfo = DB::table('shop_user')->where('openid',$openid)->first();
+            $userInfo = [
+                'user_id' => $userInfo->user_id,
+                'user_name' => $userInfo->user_email.$userInfo->user_tel
+            ];
+            session(['userInfo' => $userInfo]);
+            return redirect('/recorddetail');
+        }else{
+            return '授权失败<br>错误代码：'.$res['errcode'].'错误信息：'.$res['errmsg'];
+        }
+    }
+    /**
+     * @content 菜单-我的购物车
+     */
+    public function shopCar(Request $request){
+        $code = $request->code;
+        $appid = env('WX_APPID');
+        $secret = env('WX_APPSECRET');
+        //通过code换取网页授权access_token
+        $tokenUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=$appid&secret=$secret&code=$code&grant_type=authorization_code";
+        $data = json_decode(file_get_contents($tokenUrl),true);
+        $access_token = $data['access_token'];
+        $openid = $data['openid'];
+        //检验授权凭证（access_token）是否有效
+        $checkTokenUrl = "https://api.weixin.qq.com/sns/auth?access_token=$access_token&openid=$openid";
+        
+        $res = json_decode(file_get_contents($checkTokenUrl),true);
+        if($res['errcode'] == 0){
+            //拉取用户信息
+            $userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?access_token=$access_token&openid=$openid&lang=zh_CN";
+            $openid = json_decode(file_get_contents($userInfoUrl),true)['openid'];
+            $userInfo = DB::table('shop_user')->where('openid',$openid)->first();
+            $userInfo = [
+                'user_id' => $userInfo->user_id,
+                'user_name' => $userInfo->user_email.$userInfo->user_tel
+            ];
+            session(['userInfo' => $userInfo]);
+            return redirect('/shopcart');
+        }else{
+            return '授权失败<br>错误代码：'.$res['errcode'].'错误信息：'.$res['errmsg'];
+        }
+    }
+    /**
+     * @content 菜单-收货地址
+     */
+    public function shopAddress(Request $request){
+        $code = $request->code;
+        $appid = env('WX_APPID');
+        $secret = env('WX_APPSECRET');
+        //通过code换取网页授权access_token
+        $tokenUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=$appid&secret=$secret&code=$code&grant_type=authorization_code";
+        $data = json_decode(file_get_contents($tokenUrl),true);
+        $access_token = $data['access_token'];
+        $openid = $data['openid'];
+        //检验授权凭证（access_token）是否有效
+        $checkTokenUrl = "https://api.weixin.qq.com/sns/auth?access_token=$access_token&openid=$openid";
+        
+        $res = json_decode(file_get_contents($checkTokenUrl),true);
+        if($res['errcode'] == 0){
+            //拉取用户信息
+            $userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?access_token=$access_token&openid=$openid&lang=zh_CN";
+            $openid = json_decode(file_get_contents($userInfoUrl),true)['openid'];
+            $userInfo = DB::table('shop_user')->where('openid',$openid)->first();
+            $userInfo = [
+                'user_id' => $userInfo->user_id,
+                'user_name' => $userInfo->user_email.$userInfo->user_tel
+            ];
+            session(['userInfo' => $userInfo]);
+            return redirect('/address');
+        }else{
+            return '授权失败<br>错误代码：'.$res['errcode'].'错误信息：'.$res['errmsg'];
+        }
     }
 }

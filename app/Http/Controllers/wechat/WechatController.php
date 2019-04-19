@@ -7,9 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Model\Wechat;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
-use App\Model\Material;
-use function GuzzleHttp\json_encode;
-use function GuzzleHttp\json_decode;
+use App\Model\Order;
 
 class WechatController extends Controller
 {
@@ -21,8 +19,8 @@ class WechatController extends Controller
         //推送消息
         $this->responseMsg();
         //校验微信签名
-        $echostr = $_GET['echostr']; //随机字符串
         if($this->CheckSignature()){
+            $echostr = $_GET['echostr']; //随机字符串
             echo $echostr;exit;
         }
     }
@@ -56,15 +54,62 @@ class WechatController extends Controller
                 $url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=$token&openid=$fromUserName&lang=zh_CN";
                 $info = json_decode(file_get_contents($url),true);
                 $info['tagid_list'] = implode('、',$info['tagid_list']);
+                $userName = $info['nickname'];
                 $info['nickname'] = json_encode($info['nickname']);
                 //将用户信息存入数据库
                 DB::table('wx_userinfo')->insert($info);
                 Redis::del('userListInfo');
-                $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务 <a href="http://www.hantian.shop/admin/bindlogin">点击绑定</a>';
-                $type = config('messagetype.subscribe');
-                $resultStr = Wechat::ReplyMessage($type,$fromUserName,$toUserName);
-                // $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+                //拉取授权信息
+                $appid = env('WX_APPID');
+                $redirectUri = urlencode("http://www.hantian.shop/admin/wxtplogin");
+                $wxTPLoginUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=$appid&redirect_uri=$redirectUri&response_type=code&scope=snsapi_userinfo&state=9517#wechat_redirect"; 
+                //判断用户是否已绑定
+                $res = DB::table('shop_user')->where('openid',$info['openid'])->first();
+                if($res){
+                    $content = "$userName 欢迎您回来";
+                }else{
+                    $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务'."<a href='$wxTPLoginUrl'>".'点击绑定</a>';
+                }
+                //回复自定义消息
+                // $type = config('messagetype.subscribe');
+                // $resultStr = Wechat::ReplyMessage($type,$fromUserName,$toUserName);
+                $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
                 echo $resultStr;exit;
+            }else if($postObj->Event == 'CLICK'){  //点击菜单
+                $EventKey = $postObj->EventKey;//菜单的自定义的key值，可以根据此值判断用户点击了什么内容，从而推送不同信息  
+                switch($EventKey){
+                    case "新品推荐" :
+                        $array = DB::table('shop_goods')->orderBy('create_time','desc')->limit(5)->get();
+                        static $info;
+                        foreach($array as $v){
+                            $info[] = [
+                                'Title' => $v->goods_name,
+                                'Description' => '价格：'.$v->self_price.' 库存：'.$v->goods_num,
+                                'PicUrl' => 'http://hantian.shop/uploads/goodsimg/'.$v->goods_img,
+                                'Url' => "http://hantian.shop/shopcontent/".$v->goods_id
+                            ];
+                        }
+                        $Htpl = "<xml>
+                                    <ToUserName><![CDATA[%s]]></ToUserName>
+                                    <FromUserName><![CDATA[%s]]></FromUserName>
+                                    <CreateTime>%s</CreateTime>
+                                    <MsgType><![CDATA[%s]]></MsgType>
+                                    <ArticleCount>" . count($array) . "</ArticleCount>
+                                    <Articles>";
+                        foreach($info as $v){
+                            $Htpl .= "<item>
+                                          <Title><![CDATA[" . $v['Title'] . "]]></Title>
+                                          <Description><![CDATA[" . $v['Description'] . "]]></Description>
+                                          <PicUrl><![CDATA[" . $v['PicUrl'] . "]]></PicUrl>
+                                          <Url><![CDATA[" . $v['Url'] . "]]></Url>
+                                      </item>";
+                        }
+                        $Htpl .= "</Articles></xml>";
+                        $type = 'news';
+                        $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type);
+                        echo $resultStr;exit;
+                    break;
+                }
             }
         }
         //关键词回复消息
@@ -72,8 +117,7 @@ class WechatController extends Controller
             //测试
             // $resultStr = Wechat::ReplyMessage('music',$fromUserName,$toUserName);
             // echo $resultStr;exit;
-            // $content = "欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
-            $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务 <a href="http://www.hantian.shop/admin/bindlogin">点击绑定</a>';
+            $content = "ds欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
         }else if($keywords == '登录'){
@@ -146,48 +190,6 @@ class WechatController extends Controller
             $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$type);
 
             echo $resultStr;exit;
-        }else if($keywords == '图片'){
-            $tpl = "<xml>
-                        <ToUserName><![CDATA[%s]]></ToUserName>
-                        <FromUserName><![CDATA[%s]]></FromUserName>
-                        <CreateTime><![CDATA[%s]]></CreateTime>
-                        <MsgType><![CDATA[%s]]></MsgType>
-                        <Image>
-                            <MediaId><![CDATA[%s]]></MediaId>
-                        </Image>
-                    </xml>";
-            $MsgType = 'image';
-            $media_id = "BVxSi3v0_kRLEEHU3Xws7SOCQ5CqAdVy1QajgMPSnUCQ_wLOWvPf5k1WjUSw0id4";
-            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$media_id);
-            echo $resultStr;exit;
-        }else if($keywords == '小屋'){ //用于 测试 图文信息
-            $Htpl = "<xml>
-                        <ToUserName><![CDATA[%s]]></ToUserName>
-                        <FromUserName><![CDATA[%s]]></FromUserName>
-                        <CreateTime><![CDATA[%s]]></CreateTime>
-                        <MsgType><![CDATA[%s]]></MsgType>
-                        <ArticleCount>1</ArticleCount>
-                        <Articles>
-                            <item>
-                            <Title><![CDATA[%s]]></Title>
-                            <Description><![CDATA[%s]]></Description>
-                            <PicUrl><![CDATA[%s]]></PicUrl>
-                            <Url><![CDATA[%s]]></Url>
-                            </item>
-                        </Articles>
-                    </xml>";
-            $array = DB::table('material')->where('type','news')->orderBy('create_time','desc')->first();
-            $MsgType = 'news';            
-            $Title = $array->m_title;
-            $Description = $array->m_content;
-            $PicUrl = url("public$array->m_path");
-            $Url = $array->m_url;
-            $media_id = $array->media_id;
-            $token = Wechat::GetAccessToken(); //获取access_token
-            $PicUrl = "https://api.weixin.qq.com/cgi-bin/media/get?access_token=$token&media_id=$media_id";
-
-            $resultStr = sprintf($Htpl,$fromUserName,$toUserName,$time,$MsgType,$Title,$Description,$PicUrl,$Url);
-            echo $resultStr;exit;
         }else if(strpos($keywords,'天气')!=0){ //查询天气
             //NowApi接口 参数
             $appkey = '41389';
@@ -206,46 +208,9 @@ class WechatController extends Controller
             $content = $msg;
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
-        }else if($keywords=='时间'){ //查询当前时间
-            //NowApi接口 参数
-            $appkey = '41389';
-            $sign = '3dd3bca194977e7a41d65e4904a8bf1b';
-            $url = "http://api.k780.com/?app=life.time&appkey=$appkey&sign=$sign&format=json";
-            $url = file_get_contents($url);
-            $data = json_decode($url,true)['result'];
-            $msg = $data['datetime_2']."\r\n".$data['week_2'];
-            $content = $msg;
-            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
-            echo $resultStr;exit;
-        }else if($keywords == '创建菜单'){
-            $token = Wechat::GetAccessToken();
-            $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=$token";
-            $data = '{
-                "button":[
-                {    
-                    "type":"click",
-                    "name":"每日一点",
-                    "key":"1111"
-                },
-                {
-                    "name":"菜单",
-                    "sub_button":[
-                    {    
-                        "type":"view",
-                        "name":"百度",
-                        "url":"http://www.baidu.com/"
-                    },
-                    {
-                        "type":"click",
-                        "name":"赞一下我们",
-                        "key":"V1001_GOOD"
-                    }]
-                }]
-            }';
-            Wechat::HttpPost($url,$data);
-            $content = "创建成功";
-            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
-            echo $resultStr;exit;
+        }else if(strpos($keywords,'订单') === 0){
+            Order::orderInfo($fromUserName,$keywords);
+            exit;
         }else{
             //调用图灵机器人回复 关键词
             $data = [
@@ -284,10 +249,8 @@ class WechatController extends Controller
         $sign = sha1($str); //进行sha1加密
         //对比sign
         if($sign == $signature){
-
             return true;
         }else{
-
             return false;
         }
     }

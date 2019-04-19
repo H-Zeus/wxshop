@@ -37,41 +37,41 @@ inputs.forEach(function(el) {
     },
     false);
 });
-function placeholderAnimationIn(parent, action) {
-  var act = action ? 'add': 'remove';
-  var letters = parent.querySelectorAll('.letter');
-  letters = [].slice.call(letters, 0);
-  if (!action) letters = letters.reverse();
-  letters.forEach(function(el, i) {
-      setTimeout(function() {
-          var contains = parent.classList.contains('filled');
-          if (action && !contains || !action && contains) return;
-          el.classList[act]('active');
-      },
-      50 * i);
-  });
-}
-  document.body.classList.add('on-start');
-  document.body.classList.add('document-loaded');
 // function placeholderAnimationIn(parent, action) {
-//     var act = action ? 'add': 'remove';
-//     var letters = parent.querySelectorAll('.letter');
-//     letters = [].slice.call(letters, 0);
-//     if (!action) letters = letters.reverse();
-//     letters.forEach(function(el, i) {
-//         setTimeout(function() {
-//             var contains = parent.classList.contains('filled');
-//             if (action && !contains || !action && contains) return;
-//             el.classList[act]('active');
-//         },
-//         50 * i);
-//     });
+//   var act = action ? 'add': 'remove';
+//   var letters = parent.querySelectorAll('.letter');
+//   letters = [].slice.call(letters, 0);
+//   if (!action) letters = letters.reverse();
+//   letters.forEach(function(el, i) {
+//       setTimeout(function() {
+//           var contains = parent.classList.contains('filled');
+//           if (action && !contains || !action && contains) return;
+//           el.classList[act]('active');
+//       },
+//       50 * i);
+//   });
 // }
-// setTimeout(function() {
-//     document.body.classList.add('on-start');
-// },
-// 100);
-// setTimeout(function() {
-//     document.body.classList.add('document-loaded');
-// },
-// 1800);
+//   document.body.classList.add('on-start');
+//   document.body.classList.add('document-loaded');
+function placeholderAnimationIn(parent, action) {
+    var act = action ? 'add': 'remove';
+    var letters = parent.querySelectorAll('.letter');
+    letters = [].slice.call(letters, 0);
+    if (!action) letters = letters.reverse();
+    letters.forEach(function(el, i) {
+        setTimeout(function() {
+            var contains = parent.classList.contains('filled');
+            if (action && !contains || !action && contains) return;
+            el.classList[act]('active');
+        },
+        50 * i);
+    });
+}
+setTimeout(function() {
+    document.body.classList.add('on-start');
+},
+100);
+setTimeout(function() {
+    document.body.classList.add('document-loaded');
+},
+1800);

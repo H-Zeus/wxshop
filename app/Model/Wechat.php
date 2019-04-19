@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Redis;
 use function GuzzleHttp\json_decode;
 use Illuminate\Support\Facades\DB;
 use App\Common;
+use App\Tools\email\PHPMailer;
+use App\Tools\email\SMTP;
+use App\Tools\sms\lib\Ucpaas;
 
 class Wechat extends Model
 {
@@ -201,32 +204,21 @@ class Wechat extends Model
         return $info;
     }
 
-    /** 发送短信 */
-    public static function sendsms(Request $request){
-        $user_tel = $request->user_tel;
-        if($user_tel == ''){
-            return '手机号不能为空';
-        }
-        //查询手机号是否唯一
-        $user_model = new User;
-        $check = $user_model->where(['user_tel'=>$user_tel])->first();
-        if(!empty($check)){
-            return '用户名已存在';
-        }
-        //随机生成验证码
-        $code = Common::createcode(4);
-        //发送短信
-        $res = Common::sendSms($user_tel,$code);
-        if($res){
-            $sendInfo = [
-                'sendTime' => time(),
-                'sendCode' => $code,
-                'sendTel' => $user_tel
-            ];
-            session(['sendInfo'=>$sendInfo]);
-            return '发送成功';
-        }else{
-            return '发送失败';
-        }
+    /**
+     * @content 微信登录授权
+     */
+    public static function Authorization($code)
+    {
+        $appid = env('WX_APPID');
+        $secret = env('WX_APPSECRET');
+        //通过code换取网页授权access_token
+        $tokenUrl = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=$appid&secret=$secret&code=$code&grant_type=authorization_code";
+        $data = json_decode(file_get_contents($tokenUrl),true);
+        $access_token = $data['access_token'];
+        $openid = $data['openid'];
+        //检验授权凭证（access_token）是否有效
+        $checkTokenUrl = "https://api.weixin.qq.com/sns/auth?access_token=$access_token&openid=$openid";
+        $res = json_decode(file_get_contents($checkTokenUrl),true);
+        return $res;
     }
 }

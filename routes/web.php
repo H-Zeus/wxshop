@@ -166,4 +166,13 @@ Route::group(['prefix'=>'admin','namespace'=>'Admin'],function(){
   Route::any('/wxtplogin','UserController@wxTPLogin');
   //绑定用户
   Route::any('/bindlogin','UserController@bindLogin');
+  //发送验证码
+  Route::any('/sendcode','UserController@sendCode');
+
+  //菜单-我的订单
+  Route::any('/myorder','UserController@myOrder');
+  //菜单-我的购物车
+  Route::any('/shopcar','UserController@shopCar');
+  //菜单-收货地址
+  Route::any('/shopaddress','UserController@shopAddress');
 });
