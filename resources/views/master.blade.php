@@ -14,6 +14,7 @@
     <link href="{{url('css/index.css')}}" rel="stylesheet" type="text/css" />
     <link href="{{url('layui/css/layui.css')}}" rel="stylesheet" type="text/css" />
     <script src="{{url('layui/layui.js')}}"></script>
+    <script src="http://res2.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
     <link href="{{url('css/comm.css')}}" rel="stylesheet" type="text/css" />
     
     

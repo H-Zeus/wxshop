@@ -145,7 +145,7 @@ class UserController extends Controller
             $userInfoUrl = "https://api.weixin.qq.com/sns/userinfo?access_token=$access_token&openid=$openid&lang=zh_CN";
             // $userInfo = json_decode(file_get_contents($userInfoUrl),true);
             $openid = json_decode(file_get_contents($userInfoUrl),true)['openid'];
-
+            Redis::set('getOpenid',$openid);
             return view('admin.bindlogin',['openid'=>$openid]);
         }else{
             return '授权失败<br>错误代码：'.$res['errcode'].'错误信息：'.$res['errmsg'];
@@ -157,6 +157,8 @@ class UserController extends Controller
      */
     public function bindLogin(Request $request)
     {
+        // $openid = 'o5WxR1QYcReK0b4O6UfSMlDRMGAs';
+        // return view('admin.bindlogin',['openid'=>$openid]);
         $code = Redis::get('bindcode');
         $binduser = Redis::get('binduser');
         $user = $request->user;

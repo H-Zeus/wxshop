@@ -4,6 +4,9 @@ namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Tools\email\SMTP;
+use App\Tools\email\PHPMailer;
+use App\Tools\sms\lib\Ucpaas;
 
 class Order extends Model
 {

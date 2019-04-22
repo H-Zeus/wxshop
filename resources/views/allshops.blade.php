@@ -14,7 +14,6 @@
         <a href="javascript:history.back();" class="m-back-arrow"><i class="m-public-icon"></i></a>
         <a href="/" class="m-index-icon"><i class="m-public-icon"></i></a>
     </div>
-    
     <div class="pro-s-box thin-bor-bottom" id="divSearch">
         <div class="box">
             <div class="border">

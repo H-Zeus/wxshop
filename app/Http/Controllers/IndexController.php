@@ -18,8 +18,9 @@ use App\Model\Order;
 class IndexController extends Controller
 {
     /** 首页 */
-    public function index()
+    public function index(Request $request)
     {   
+        $wxconfig = $request->signPackage;
         //获取商品信息
         $goods_model = new Goods;
         $goodsInfo = $goods_model->get();
@@ -28,7 +29,7 @@ class IndexController extends Controller
         $categort_model = new Category;
         $categoryInfo = $categort_model->get();
         $categoryInfo = $this->getTopCateInfo($categoryInfo);
-        return view('index',['goodsInfo'=>$goodsInfo,'categoryInfo'=>$categoryInfo]);
+        return view('index',['goodsInfo'=>$goodsInfo,'categoryInfo'=>$categoryInfo,'signPackage'=>$wxconfig]);
     }
 
     /** 加入购物车 */
@@ -961,53 +962,60 @@ class IndexController extends Controller
     public function register(Request $request)
     {
         if($request->ajax()){
-            $validate = Validator::make($request->all(),[
-                'user_tel'=>"required|unique:shop_user",
-                'user_pwd'=>"required|min:6|max:12",
-                'keycode'=>"required"
-            ],[
-                "user_tel.required"=>'手机号为空',
-                "user_tel.unique"=>'手机号已存在',
-                "user_pwd.required"=>'密码为空',
-                "user_pwd.min"=>"密码不能小于6位",
-                "user_pwd.max"=>"密码不能大于12位",
-                "keycode.required"=>"验证码为空",
-            ]);
-            static $str = '';
-            if($validate->fails()){
-                $errors  = $validate->errors()->getMessages();
-                foreach ($errors as $v){
-                    $str .= implode('&&',$v)."<br>";
-                }
-                return $str;
-            }
-            //验证
-            if($request->user_tel == ''){
-                return '手机号不能为空';
-            }
-            if($request->user_pwd == ''){
-                return '密码不能为空';
-            }
-            if($request->keycode == ''){
-                return '验证码不能为空';
-            }
             $data = $request->all();
             unset($data['_token']);
             $data['user_pwd'] = encrypt($data['user_pwd']);
             $user_model = new User;
-            //查询手机号是否唯一
-            $user_tel = $data['user_tel'];
-            $check = $user_model->where(['user_tel'=>$user_tel])->first();
-            if(!empty($check)){
-                return '用户名已存在';
+            $pattern = '/^([a-z0-9])(([-a-z0-9._])*([a-z0-9]))*\@([a-z0-9])*(\.([a-z0-9])([-a-z0-9_-])([a-z0-9])+)*$/i';
+            preg_match($pattern, $request->user_tel, $matches);
+            if($matches){ // 邮箱 发送邮箱
+                //查询邮箱是否唯一
+                $user_mail = $user_tel = $data['user_tel'];
+                $check = $user_model->where(['user_email'=>$user_mail])->first();
+            }else{
+                $validate = Validator::make($request->all(),[
+                    'user_tel'=>"required|unique:shop_user",
+                    'user_pwd'=>"required|min:6|max:12",
+                    'keycode'=>"required"
+                ],[
+                    "user_tel.required"=>'手机号为空',
+                    "user_tel.unique"=>'手机号已存在',
+                    "user_pwd.required"=>'密码为空',
+                    "user_pwd.min"=>"密码不能小于6位",
+                    "user_pwd.max"=>"密码不能大于12位",
+                    "keycode.required"=>"验证码为空",
+                ]);
+                static $str = '';
+                if($validate->fails()){
+                    $errors  = $validate->errors()->getMessages();
+                    foreach ($errors as $v){
+                        $str .= implode('&&',$v)."<br>";
+                    }
+                    return $str;
+                }
+                //查询手机号是否唯一
+                $user_tel = $data['user_tel'];
+                $check = $user_model->where(['user_tel'=>$user_tel])->first();
             }
+            $binduser = Redis::get('binduser');
+            if($user_tel !== $binduser){return '操作异常！';}
+            //验证
+            if($request->user_tel == ''){return '账号号不能为空';}
+            if($request->user_pwd == ''){return '密码不能为空';}
+            if($request->keycode == ''){return '验证码不能为空';}
+            if(!empty($check)){return '用户名已存在';}
             //判断验证码是否正确
-            $code = session('sendInfo')['sendCode'];
+            $code = Redis::get('bindcode');
+            // dd($code);
             $keycode = $data['keycode'];
             if($keycode == $code){
                 unset($data['keycode']);
                 $data['user_name'] = $user_tel;
                 //入库
+                if($matches){ // 邮箱 
+                    unset($data['user_tel']);
+                    $data['user_email'] = $request->user_tel;
+                }
                 $res = $user_model->insertGetId($data);
                 if($res){
                     $userInfo = [
@@ -1015,7 +1023,15 @@ class IndexController extends Controller
                         'user_name' => $data['user_name']
                     ];
                     session(['userInfo' => $userInfo]);
-                    return '注册成功';
+                    //绑定微信
+                    $openid = Redis::get('getOpenid');
+                    if($matches){ // 邮箱 
+                        $res1 = DB::table('shop_user')->where('user_email',$user_tel)->update(['openid'=>$openid]);
+                    }
+                    $res1 = DB::table('shop_user')->where('user_tel',$user_tel)->update(['openid'=>$openid]);
+                    if($res || $res1){
+                        return '注册成功';
+                    }
                 }else{
                     return '注册失败';
                 }
@@ -1032,29 +1048,34 @@ class IndexController extends Controller
         $user_pwd = $request->user_pwd;
         $user_tel = $request->user_tel;
         if($user_tel == ''){
-            return '手机号不能为空';
+            return '账号不能为空';
         }
         //查询手机号是否唯一
         $user_model = new User;
-        $check = $user_model->where(['user_tel'=>$user_tel])->first();
-        if(!empty($check)){
-            return '用户名已存在';
+        $pattern = '/^([a-z0-9])(([-a-z0-9._])*([a-z0-9]))*\@([a-z0-9])*(\.([a-z0-9])([-a-z0-9_-])([a-z0-9])+)*$/i';
+        preg_match($pattern, $request->user_tel, $matches);
+        if($matches){ // 邮箱
+            $check = $user_model->where(['user_email'=>$user_tel])->first();
+        }else{
+            $check = $user_model->where(['user_tel'=>$user_tel])->first();
         }
-        if($user_pwd == ''){
-            return '密码不能为空';
-        }
-        //随机生成验证码
+        if(!empty($check)){return '用户名已存在';}
+        if($user_pwd == ''){return '密码不能为空';}
+        $user_tel = $request->user_tel;
+        Redis::set('binduser',$user_tel);
+        //判断是邮箱还是手机号
         $code = Common::createcode(4);
-        //发送短信
-        $res = Common::sendSms($user_tel,$code);
+        //模拟发送成功
+        // Redis::setex('bindcode',300,$code);
+        // dd(Redis::get('bindcode'));
+        if($matches){ // 邮箱 发送邮箱
+            $res = Order::sendEmail($user_tel,$code);
+        }else{ //手机号 发送短信
+            $res = Order::sendsms($user_tel,$code);
+        }
         if($res){
-            $sendInfo = [
-                'sendTime' => time(),
-                'sendCode' => $code,
-                'sendTel' => $user_tel
-            ];
-            session(['sendInfo'=>$sendInfo]);
-            return '发送成功';
+            Redis::setex('bindcode',300,$code);
+            return '发送成功,验证码5分钟内有效';
         }else{
             return '发送失败';
         }

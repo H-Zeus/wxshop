@@ -33,9 +33,9 @@ class WechatController extends Controller
         //获取微信请求的所有内容
         $postStr = file_get_contents("php://input");
         $postObj = simplexml_load_string($postStr);//转换成对象
-        $fromUserName = $postObj->FromUserName;
-        $toUserName = $postObj->ToUserName;
-        $keywords = trim($postObj->Content);
+        $fromUserName = $postObj->FromUserName; //获取发送方帐号
+        $toUserName = $postObj->ToUserName; //获取接收方帐号
+        $keywords = trim($postObj->Content); //获取用户输入的内容
         $time = time();
         $MsgType = "text";
         $tpl = "<xml>
@@ -68,7 +68,7 @@ class WechatController extends Controller
                 if($res){
                     $content = "$userName 欢迎您回来";
                 }else{
-                    $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务'."<a href='$wxTPLoginUrl'>".'点击绑定</a>';
+                    $content = '尊敬的用户您好，雪天网感谢您的使用，首次关注需要您绑定本网站的账户，以便更方便的为您提供服务 '."<a href='$wxTPLoginUrl'>".'点击绑定</a>';
                 }
                 //回复自定义消息
                 // $type = config('messagetype.subscribe');
@@ -125,6 +125,10 @@ class WechatController extends Controller
             $redirectUri = urlencode("http://www.hantian.shop/admin/wxtplogin");
             $wxTPLoginUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=$appid&redirect_uri=$redirectUri&response_type=code&scope=snsapi_userinfo&state=9517#wechat_redirect"; 
             $content = $wxTPLoginUrl;
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+            echo $resultStr;exit;
+        }else if($keywords == '电话'){
+            $content ="<a href='tel://13315080034'>拨打</a>";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
         }else if(strpos($keywords,'商品：') === 0){ //查询商品  返回图文信息
@@ -260,8 +264,40 @@ class WechatController extends Controller
      */
     public function test()
     {
-        Redis::flushall();
-        $token = Wechat::GetAccessToken();
-        echo $token;exit;
+        // Redis::flushall();
+        // $token = Wechat::GetAccessToken();
+        // echo $token;exit;
+
+        ############### 1 生成任意不重复五位数10000个 #######################
+        $array = range(10000,99999);
+        shuffle($array);
+        $array = array_slice($array,0,10000);
+        dd($array);
+        // file_put_contents('D:\www\测试\text.txt',implode("\r\n",$array));
+        // ############### 2 将生成的数存入文件中，每个文件存储1000个 #######################
+        // $num = count($array)/10;
+        // for($i = 1;$i<=10;$i++){
+        //     if($i == 1){
+        //         $start = 0;
+        //     }else{
+        //         $start = ($i-1)*1000;
+        //     }
+        //     file_put_contents('D:\www\测试\text'.$i.'.txt',implode("\r\n",array_slice($array,$start,$num)));
+        // }
+        ############### 3 查找一个数字在不在文件中，如果在给出在哪个文件里，不在给出提示 #######################
+        // $num = '45850'; //要查询的 五位数字
+        // $fileName = false;
+        // for($i = 1;$i<=10;$i++){
+        //     $file = file_get_contents('D:\www\测试\text'.$i.'.txt');
+        //     if(strpos($file,$num) !== false){
+        //         $fileName = 'text'.$i;
+        //     }
+        // }
+        // if($fileName){
+        //     echo '存在<br>';
+        //     echo $fileName.'.txt';
+        // }else{
+        //     echo '不存在';
+        // }
     }  
 }

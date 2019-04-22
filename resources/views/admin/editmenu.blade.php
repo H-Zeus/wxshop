@@ -301,7 +301,7 @@ $(function(){
         m_id += number++ +'||';
         if(number == 1){
           pid += 0+'||';
-        }else if($(this).find('td').first().next().find('select').val() == null || $(this).find('td').first().next().find('select').val() == ''){
+        }else if($(this).find('td').first().next().find('select').val() == null || $(this).find('td').first().next().find('select').val() == '' || $(this).find('td').last().find('.del').attr('pid') == 0){
           pid += 0+'||';
           k = 0;
         }else{

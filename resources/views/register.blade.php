@@ -33,7 +33,7 @@
                 <li class="accAndPwd">
                     <dl>
                         <s class="phone"></s>
-                        <input id="userMobile" maxlength="11" type="number" placeholder="请输入您的手机号码" name="user_tel" />
+                        <input id="userMobile" type="text" placeholder="请输入您的手机号码或邮箱号" name="user_tel" />
                         <span class="clear">x</span>
                     </dl>
                     <dl>
@@ -119,21 +119,21 @@
     function registertel(){
         // 手机号失去焦点
         $('#userMobile').blur(function(){
-            reg=/^1(3[0-9]|4[57]|5[0-35-9]|8[0-9]|7[06-8])\d{8}$/;//验证手机正则(输入前7位至11位)  
+            // reg=/^1(3[0-9]|4[57]|5[0-35-9]|8[0-9]|7[06-8])\d{8}$/;//验证手机正则(输入前7位至11位)  
             var that = $(this);
           
-            if( that.val()==""|| that.val()=="请输入您的手机号")  
+            if( that.val()==""|| that.val()=="请输入您的手机号或邮箱号")  
             {   
-                layer.msg('请输入您的手机号！');
+                layer.msg('请输入您的手机号或邮箱号！');
             }  
-            else if(that.val().length<11)  
-            {     
-                layer.msg('您输入的手机号长度有误！'); 
-            }  
-            else if(!reg.test($("#userMobile").val()))  
-            {   
-                layer.msg('您输入的手机号不存在!'); 
-            }  
+            // else if(that.val().length<11)  
+            // {     
+            //     layer.msg('您输入的手机号长度有误！'); 
+            // }  
+            // else if(!reg.test($("#userMobile").val()))  
+            // {   
+            //     layer.msg('您输入的手机号不存在!'); 
+            // }  
             else if(that.val().length == 11){
                 // ajax请求后台数据
             }
@@ -178,7 +178,7 @@
     // 下一步提交
     $('#btnNext').click(function(){
     	if($('#userMobile').val()==''){
-    		layer.msg('请输入您的手机号！');
+    		layer.msg('请输入您的手机号或邮箱号！');
     	}else if($('.pwd').val()==''){
     		layer.msg('请输入您的密码!');
     	}else if($('.conpwd').val()==''){
@@ -193,7 +193,7 @@
 <script src="{{url('js/all.js')}}"></script>
 <script>
     $(function(){
-        var status = false;
+        var status = true;
         var _token = $('#_token').val();
         //获取验证码
         $('.sendcode').click(function(){

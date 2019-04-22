@@ -65,7 +65,7 @@
           </td>
           <td>{{$v->type}}</td>
           <td>{{$v->key}}</td>
-          <td>{{$v->url}}</td>
+          <td>{{substr($v->url,0,30)}}</td>
           <td class="layui-form">
             <div class="layui-form-item" style="margin:0;">
               <div class="layui-input-block">
