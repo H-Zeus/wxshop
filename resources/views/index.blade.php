@@ -230,7 +230,7 @@
 	});
 </script>
 <script>
-	// alert(document.URL);
+	//调用JS-SDK
   wx.config({
     debug: true,
     appId: "{{$signPackage['appId']}}",
@@ -239,15 +239,62 @@
     signature: "{{$signPackage['signature']}}",
     jsApiList: [
 			'onMenuShareTimeline', //分享到朋友圈
+			'onMenuShareAppMessage', //分享给朋友
+			'onMenuShareQQ', //分享到QQ
+			'getLocation', //获取地理位置接口
+			'openLocation', //使用微信内置地图查看位置接口
     ]
   });
   wx.ready(function () {
+		//分享到朋友圈
     wx.onMenuShareTimeline({
-			title:'test', // 分享标题
+			title:document.title, // 分享标题
 			link:document.URL, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-			imgUrl: 'http://www.shop.com/uploads/material/20190410/201904101507313580.jpg', // 分享图标
+			imgUrl: 'http://www.shop.com/uploads/favicon.ico', // 分享图标
 			success: function(){
 				// 用户点击了分享后执行的回调函数
+			}
+		});
+
+		//分享给朋友
+		wx.onMenuShareAppMessage({
+			title: document.title, // 分享标题
+			desc: '测试接口：分享给朋友', // 分享描述
+			link: document.URL, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+			imgUrl: 'http://www.shop.com/uploads/favicon.ico', // 分享图标
+			type: '', // 分享类型,music、video或link，不填默认为link
+			success: function () {
+				// 用户点击了分享后执行的回调函数
+			}
+		});
+
+		//分享到QQ
+		wx.onMenuShareQQ({
+			title: document.title, // 分享标题
+			desc: '测试接口：分享到QQ', // 分享描述
+			link: document.URL, // 分享链接
+			imgUrl: 'http://www.shop.com/uploads/favicon.ico', // 分享图标
+			success: function () {
+				// 用户确认分享后执行的回调函数
+			},
+			cancel: function () {
+				// 用户取消分享后执行的回调函数
+			}
+		});
+
+		//获取地理位置接口
+		wx.getLocation({
+			type: 'gcj02', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+			success: function (res) {
+				//使用微信内置地图查看位置接口
+				wx.openLocation({
+					latitude: res.latitude, // 纬度，浮点数，范围为90 ~ -90
+					longitude: res.longitude, // 经度，浮点数，范围为180 ~ -180。
+					name: '', // 位置名
+					address: '', // 地址详情说明
+					scale: 1, // 地图缩放级别,整形值,范围从1~28。默认为最大
+					infoUrl: '' // 在查看位置界面底部显示的超链接,可点击跳转
+				});
 			}
 		});
   });

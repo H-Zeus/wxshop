@@ -454,8 +454,10 @@ class IndexController extends Controller
     }
 
     /** 商品详情 */
-    public function shopcontent($goods_id)
+    public function shopcontent($goods_id,Request $request)
     {
+        $wxconfig = $request->signPackage;
+        // dd($wxconfig);
         $goods_model = new Goods;
         //判断是否存在缓存
         // if(Cache::has('goodsInfo'.$goods_id)){
@@ -480,7 +482,7 @@ class IndexController extends Controller
         //轮播图处理
         $goods_imgs = $goods_model->where(['goods_id'=>$goods_id])->select('goods_imgs')->first()['goods_imgs'];
         $goods_imgs = explode('|', rtrim($goods_imgs,'|'));
-        return view('shopcontent',['goodsInfo'=>$goodsInfo,'goods_imgs'=>$goods_imgs]);
+        return view('shopcontent',['goodsInfo'=>$goodsInfo,'goods_imgs'=>$goods_imgs,'signPackage'=>$wxconfig]);
     }
 
     /** 递归获取顶级分类 */

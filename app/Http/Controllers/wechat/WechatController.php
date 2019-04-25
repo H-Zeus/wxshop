@@ -120,12 +120,28 @@ class WechatController extends Controller
             $content = "ds欢迎来到我的小屋~~（小屋里藏着个图灵哦）";
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
             echo $resultStr;exit;
-        }else if($keywords == '登录'){
-            $appid = env('WX_APPID');
-            $redirectUri = urlencode("http://www.hantian.shop/admin/wxtplogin");
-            $wxTPLoginUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=$appid&redirect_uri=$redirectUri&response_type=code&scope=snsapi_userinfo&state=9517#wechat_redirect"; 
-            $content = $wxTPLoginUrl;
-            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
+        }else if($keywords == '最新商品'){
+            $data = DB::table('shop_goods')->orderBy('create_time','desc')->first();
+            $tpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[news]]></MsgType>
+                        <ArticleCount>1</ArticleCount>
+                        <Articles>
+                        <item>
+                            <Title><![CDATA[%s]]></Title>
+                            <Description><![CDATA[%s]]></Description>
+                            <PicUrl><![CDATA[%s]]></PicUrl>
+                            <Url><![CDATA[%s]]></Url>
+                        </item>
+                        </Articles>
+                    </xml>";
+            $Title = $data->goods_name;
+            $Description = $data->goods_desc;
+            $PicUrl = "http://www.hantian.shop/uploads/goodsimg/".$data->goods_img;
+            $Url = "http://www.hantian.shop/shopcontent/".$data->goods_id;
+            $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$Title,$Description,$PicUrl,$Url);
             echo $resultStr;exit;
         }else if($keywords == '电话'){
             $content ="<a href='tel://13315080034'>拨打</a>";
@@ -234,7 +250,8 @@ class WechatController extends Controller
             $msg = json_decode($re,true)['results'][0]['values']['text'];
             $content = $msg;
             $resultStr = sprintf($tpl,$fromUserName,$toUserName,$time,$MsgType,$content);
-            echo $resultStr;exit;
+            echo $resultStr;
+            exit;
         }
     }
 
@@ -264,40 +281,8 @@ class WechatController extends Controller
      */
     public function test()
     {
-        // Redis::flushall();
-        // $token = Wechat::GetAccessToken();
-        // echo $token;exit;
-
-        ############### 1 生成任意不重复五位数10000个 #######################
-        $array = range(10000,99999);
-        shuffle($array);
-        $array = array_slice($array,0,10000);
-        dd($array);
-        // file_put_contents('D:\www\测试\text.txt',implode("\r\n",$array));
-        // ############### 2 将生成的数存入文件中，每个文件存储1000个 #######################
-        // $num = count($array)/10;
-        // for($i = 1;$i<=10;$i++){
-        //     if($i == 1){
-        //         $start = 0;
-        //     }else{
-        //         $start = ($i-1)*1000;
-        //     }
-        //     file_put_contents('D:\www\测试\text'.$i.'.txt',implode("\r\n",array_slice($array,$start,$num)));
-        // }
-        ############### 3 查找一个数字在不在文件中，如果在给出在哪个文件里，不在给出提示 #######################
-        // $num = '45850'; //要查询的 五位数字
-        // $fileName = false;
-        // for($i = 1;$i<=10;$i++){
-        //     $file = file_get_contents('D:\www\测试\text'.$i.'.txt');
-        //     if(strpos($file,$num) !== false){
-        //         $fileName = 'text'.$i;
-        //     }
-        // }
-        // if($fileName){
-        //     echo '存在<br>';
-        //     echo $fileName.'.txt';
-        // }else{
-        //     echo '不存在';
-        // }
+        Redis::flushall();
+        $token = Wechat::GetAccessToken();
+        echo $token;exit;
     }  
 }
