@@ -658,6 +658,7 @@ class IndexController extends Controller
     public function logout(Request $request)
     {
         $request->session()->flush();
+        Redis::del('userInfo');
         return redirect('/userpage');
     }
 

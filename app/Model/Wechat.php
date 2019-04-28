@@ -54,7 +54,7 @@ class Wechat extends Model
         }else{
             $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=$grant_type&appid=$appid&secret=$secret";
             $token = json_decode(file_get_contents($url),true)['access_token'];
-            Redis::setex('access_token',6000,$token);
+            Redis::setex('access_token',7000,$token);
         }
 
         return $token;

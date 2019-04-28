@@ -116,8 +116,6 @@ Route::group(['prefix'=>'alipay'],function(){
 //微信绑定服务器
 Route::any('/wechat/check','wechat\\WechatController@check');
 
-//test
-Route::any('/wechat/test','wechat\\WechatController@test');
 
 /***************************
  *          后 台          *
@@ -176,3 +174,16 @@ Route::group(['prefix'=>'admin','namespace'=>'Admin'],function(){
   //菜单-收货地址
   Route::any('/shopaddress','UserController@shopAddress');
 });
+
+//生成二维码
+Route::any('user/qrcode','User\QrcodeController@getQRcode');
+//扫码登录
+Route::any('user/qrlogin/{userid}','User\QrcodeController@qrLogin');
+//扫码授权登录
+Route::any('user/tplogin','User\QrcodeController@tpLogin');
+//获取状态
+Route::any('user/status','User\QrcodeController@getStatus');
+//确认登录 更改状态
+Route::any('user/changestatus','User\QrcodeController@changestatus');
+//确认登录 更改状态
+Route::any('test','User\QrcodeController@test');

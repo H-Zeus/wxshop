@@ -281,6 +281,7 @@ class WechatController extends Controller
      */
     public function test()
     {
+        // exit;
         Redis::flushall();
         $token = Wechat::GetAccessToken();
         echo $token;exit;

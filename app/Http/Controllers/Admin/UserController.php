@@ -148,7 +148,7 @@ class UserController extends Controller
             Redis::set('getOpenid',$openid);
             return view('admin.bindlogin',['openid'=>$openid]);
         }else{
-            return '授权失败<br>错误代码：'.$res['errcode'].'错误信息：'.$res['errmsg'];
+            return '授权失败<br>错误代码：'.$res['errcode'].'<br>错误信息：'.$res['errmsg'];
         }
     }
 

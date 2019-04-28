@@ -1,5 +1,9 @@
 <?php
 namespace App\Tools\jssdk;
+
+use App\Model\Wechat;
+use Illuminate\Support\Facades\Redis;
+
 class Wxjs {
   private $appId;
   private $appSecret;
@@ -51,9 +55,14 @@ class Wxjs {
       $accessToken = $this->getAccessToken();
       // 如果是企业号用以下 URL 获取 ticket
       // $url = "https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket?access_token=$accessToken";
-      $url = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=$accessToken";
-      $res = json_decode($this->httpGet($url));
-      $ticket = $res->ticket;
+      if(Redis::exists('ticket')){
+        $ticket = Redis::get('ticket');
+      }else{
+        $url = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=$accessToken";
+        $res = json_decode($this->httpGet($url));
+        $ticket = $res->ticket;
+        Redis::setex('ticket',7000,$ticket);
+      }
       if ($ticket) {
         $data->expire_time = time() + 7000;
         $data->jsapi_ticket = $ticket;
@@ -72,9 +81,10 @@ class Wxjs {
     if ($data->expire_time < time()) {
       // 如果是企业号用以下URL获取access_token
       // $url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=$this->appId&corpsecret=$this->appSecret";
-      $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$this->appId&secret=$this->appSecret";
-      $res = json_decode($this->httpGet($url));
-      $access_token = $res->access_token;
+      // $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$this->appId&secret=$this->appSecret";
+      // $res = json_decode($this->httpGet($url));
+      // $access_token = $res->access_token;
+      $access_token = Wechat::GetAccessToken();
       if ($access_token) {
         $data->expire_time = time() + 7000;
         $data->access_token = $access_token;

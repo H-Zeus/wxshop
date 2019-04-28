@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Redis;
+
 class LoginMiddleware
 {
     /**
@@ -15,12 +17,14 @@ class LoginMiddleware
      */
     public function handle($request, Closure $next)
     {   
-        //判断是否登录
-        if(!session('userInfo')){
-            // echo "<script> alert('请先登录');location.href='/userpage';</script>"; 
+        if(Redis::exists('userInfo')){
+            $userInfo = json_decode(Redis::get('userInfo'),true);
+            session(['userInfo' => $userInfo]);
+        }else if(!session('userInfo') && !Redis::exists('userInfo')){
+            //判断是否登录
             return redirect('/userpage');
-            // return Redirect::guest('/userpage'); 
         }
+        
         return $next($request);
     }
 }
