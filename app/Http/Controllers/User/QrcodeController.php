@@ -9,6 +9,7 @@ use App\Common;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use App\Model\Wechat;
+use function GuzzleHttp\json_encode;
 
 class QrcodeController extends Controller
 {
@@ -103,12 +104,13 @@ class QrcodeController extends Controller
                 $user_name = $check->user_name;
             }else{
                 //入库
+                $user_name = Redis::get('qrcodeName');
                 $data = [
                     'openid' => $openid,
-                    'user_pwd' => encrypt('123123')
+                    'user_pwd' => encrypt('123123'),
+                    'user_name' => json_encode($user_name)
                 ];
                 $user_id = DB::table('shop_user')->insertGetId($data);
-                $user_name = Redis::get('qrcodeName');
             }
             $userInfo = [
                 'user_id' => $user_id,
@@ -123,7 +125,7 @@ class QrcodeController extends Controller
 
     public function test()
     {
-        echo Redis::get('qrcodeName');
+        echo Redis::get('userInfo');
         exit;
         echo Redis::get('abc');
     }

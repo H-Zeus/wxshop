@@ -68,4 +68,15 @@ class Common extends Model
             return '操作正常';
         }
     }
+
+    /**
+     * 将 Unicode 转化为 中文
+     * @param string $str 要转化的字符串
+     */
+    public static function unicode_decode($str){
+        $json = '{"str":"'.$str.'"}';
+        $arr = json_decode($json,true);
+        if(empty($arr)) return '';
+        return $arr['str'];
+    }
 }
